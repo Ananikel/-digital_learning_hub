@@ -3,13 +3,17 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# On copie les fichiers de configuration
 COPY package*.json ./
 COPY prisma ./prisma/
 
+# Installation des dépendances
 RUN npm install
 
+# Copie du reste du code
 COPY . .
 
+# Génération de Prisma Client et Build
 RUN npx prisma generate
 RUN npm run build
 
