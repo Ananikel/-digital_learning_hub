@@ -1,0 +1,277 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String
+  role          Role      @relation(fields: [roleId], references: [id])
+  roleId        Int
+  student       Student?
+  teacher       Teacher?
+  auditLogs     AuditLog[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Role {
+  id            Int              @id @default(autoincrement())
+  name          String           @unique
+  description   String?
+  permissions   RolePermission[]
+  users         User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id            Int              @id @default(autoincrement())
+  name          String           @unique
+  module        String
+  roles         RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  role          Role       @relation(fields: [roleId], references: [id])
+  roleId        Int
+  permission    Permission @relation(fields: [permissionId], references: [id])
+  permissionId  Int
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Student {
+  id              Int           @id @default(autoincrement())
+  user            User?         @relation(fields: [userId], references: [id])
+  userId          Int?          @unique
+  fullName        String
+  phone           String?
+  enrollmentDate  DateTime      @default(now())
+  status          String        @default("active")
+  parent          Parent?
+  enrollments     Enrollment[]
+  attendance      Attendance[]
+  grades          Grade[]
+  payments        Payment[]
+
+  @@map("students")
+}
+
+model Parent {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  phone       String?
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   Int      @unique
+
+  @@map("parents")
+}
+
+model Teacher {
+  id            Int           @id @default(autoincrement())
+  user          User          @relation(fields: [userId], references: [id])
+  userId        Int           @unique
+  fullName      String
+  phone         String?
+  qualification String?
+  availability  String?
+  cohorts       Cohort[]
+  courses       Course[]
+
+  @@map("teachers")
+}
+
+model Subject {
+  id              Int           @id @default(autoincrement())
+  nameFr          String
+  nameEn          String
+  code            String        @unique
+  category        String
+  color           String?
+  description     String?
+  levels          Level[]
+  cohorts         Cohort[]
+  aiRequests      AiRequest[]
+  resources       Resource[]
+
+  @@map("subjects")
+}
+
+model Level {
+  id          Int           @id @default(autoincrement())
+  name        String
+  subject     Subject       @relation(fields: [subjectId], references: [id])
+  subjectId   Int
+  duration    String?
+  baseFee     Float         @default(0)
+  cohorts     Cohort[]
+  resources   Resource[]
+
+  @@map("levels")
+}
+
+model Cohort {
+  id          Int           @id @default(autoincrement())
+  name        String
+  subject     Subject       @relation(fields: [subjectId], references: [id])
+  subjectId   Int
+  level       Level         @relation(fields: [levelId], references: [id])
+  levelId     Int
+  teacher     Teacher       @relation(fields: [teacherId], references: [id])
+  teacherId   Int
+  schedule    String?
+  capacity    Int           @default(20)
+  status      String        @default("planned")
+  enrollments Enrollment[]
+  courses     Course[]
+
+  @@map("cohorts")
+}
+
+model Enrollment {
+  id              Int       @id @default(autoincrement())
+  student         Student   @relation(fields: [studentId], references: [id])
+  studentId       Int
+  cohort          Cohort    @relation(fields: [cohortId], references: [id])
+  cohortId        Int
+  status          String    @default("active")
+  enrollmentDate  DateTime  @default(now())
+
+  @@map("enrollments")
+}
+
+model Course {
+  id          Int           @id @default(autoincrement())
+  title       String
+  cohort      Cohort        @relation(fields: [cohortId], references: [id])
+  cohortId    Int
+  teacher     Teacher       @relation(fields: [teacherId], references: [id])
+  teacherId   Int
+  week        Int?
+  session     Int?
+  type        String?
+  objective   String?
+  status      String        @default("draft")
+  attendance  Attendance[]
+  assessments Assessment[]
+
+  @@map("courses")
+}
+
+model Attendance {
+  id          Int       @id @default(autoincrement())
+  student     Student   @relation(fields: [studentId], references: [id])
+  studentId   Int
+  course      Course    @relation(fields: [courseId], references: [id])
+  courseId    Int
+  date        DateTime  @default(now())
+  status      String    @default("present")
+  note        String?
+
+  @@map("attendance")
+}
+
+model Assessment {
+  id          Int       @id @default(autoincrement())
+  title       String
+  course      Course    @relation(fields: [courseId], references: [id])
+  courseId    Int
+  type        String
+  maxScore    Float     @default(100)
+  grades      Grade[]
+
+  @@map("assessments")
+}
+
+model Grade {
+  id                Int         @id @default(autoincrement())
+  student           Student     @relation(fields: [studentId], references: [id])
+  studentId         Int
+  assessment        Assessment  @relation(fields: [assessmentId], references: [id])
+  assessmentId      Int
+  score             Float
+  decision          String?
+  feedback          String?
+  correctionStatus  String      @default("not_corrected")
+
+  @@map("grades")
+}
+
+model Payment {
+  id            Int       @id @default(autoincrement())
+  student       Student   @relation(fields: [studentId], references: [id])
+  studentId     Int
+  amount        Float
+  method        String
+  status        String
+  reference     String?
+  date          DateTime  @default(now())
+  dueDate       DateTime?
+
+  @@map("payments")
+}
+
+model AiRequest {
+  id          Int       @id @default(autoincrement())
+  requesterId Int
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  subjectId   Int
+  prompt      String
+  output      String?
+  status      String    @default("pending")
+  validatedBy Int?
+
+  @@map("ai_requests")
+}
+
+model Resource {
+  id          Int       @id @default(autoincrement())
+  title       String
+  type        String
+  fileUrl     String
+  visibility  String    @default("studentsOnly")
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  subjectId   Int
+  level       Level?    @relation(fields: [levelId], references: [id])
+  levelId     Int?
+
+  @@map("resources")
+}
+
+model AuditLog {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  action    String
+  module    String
+  targetId  Int?
+  timestamp DateTime  @default(now())
+
+  @@map("audit_logs")
+}
+
+model Setting {
+  id          Int     @id @default(autoincrement())
+  key         String  @unique
+  value       String
+  category    String
+  description String?
+
+  @@map("settings")
+}
