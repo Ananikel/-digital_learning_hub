@@ -14,12 +14,14 @@ fi
 echo "📦 Génération du client Prisma..."
 npx prisma generate
 
-# Application des migrations
-echo "🗄️ Application des migrations..."
-npx prisma migrate deploy
+# Application du schéma (plus robuste que migrate deploy pour le premier lancement)
+echo "🗄️ Synchronisation du schéma avec la base de données..."
+npx prisma db push --accept-data-loss
+
+# Petite pause pour stabiliser
+sleep 2
 
 # Remplissage des données initiales (Seed)
-# On utilise ts-node avec des options pour forcer la lecture du .ts
 echo "🌱 Remplissage de la base de données (Seed)..."
 npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
 
