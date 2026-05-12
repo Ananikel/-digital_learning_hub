@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Génération de Prisma Client et Build
-RUN npx prisma generate
+RUN npx prisma generate --no-engine
 RUN npm run build
 
 # Production stage
