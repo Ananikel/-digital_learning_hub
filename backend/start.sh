@@ -4,8 +4,9 @@ echo "🚀 Démarrage de l'initialisation du backend..."
 
 # Création d'un fichier .env à la volée pour Prisma
 if [ -n "$DATABASE_URL" ]; then
+  export DATABASE_URL="$DATABASE_URL"
   echo "DATABASE_URL=\"$DATABASE_URL\"" > .env
-  echo "✅ Fichier .env généré avec l'URL de la base de données."
+  echo "✅ Variable exportée et .env généré."
 else
   echo "⚠️ Attention : DATABASE_URL est vide."
 fi
