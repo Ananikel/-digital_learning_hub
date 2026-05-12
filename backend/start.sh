@@ -1,18 +1,24 @@
 #!/bin/sh
 
-# On attend que la DB soit prête si nécessaire (optionnel car Coolify gère souvent ça)
 echo "🚀 Démarrage de l'initialisation du backend..."
 
-# Génération du client Prisma (basé sur le schéma)
+# Vérification de la présence de DATABASE_URL
+if [ -z "$DATABASE_URL" ]; then
+  echo "❌ ERREUR : La variable DATABASE_URL est absente !"
+  # On ne s'arrête pas forcément, on laisse NestJS essayer de démarrer
+else
+  echo "✅ DATABASE_URL détectée."
+fi
+
+# Génération du client Prisma
 echo "📦 Génération du client Prisma..."
 npx prisma generate
 
-# Application des migrations (création des tables)
+# Application des migrations (on force l'URL si elle existe pour être sûr)
 echo "🗄️ Application des migrations..."
 npx prisma migrate deploy
 
 # Remplissage des données initiales (Seed)
-# Note : On peut commenter cette ligne si on ne veut pas seed à chaque redémarrage
 echo "🌱 Remplissage de la base de données (Seed)..."
 npx prisma db seed
 
