@@ -13,7 +13,10 @@ RUN npm install
 # Copie du reste du code
 COPY . .
 
-# Build de l'application (SANS prisma generate ici pour éviter les erreurs de build)
+# Génération de Prisma Client (nécessaire pour la compilation NestJS)
+RUN npx prisma generate
+
+# Build de l'application
 RUN npm run build
 
 # Production stage
