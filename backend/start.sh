@@ -14,13 +14,14 @@ fi
 echo "📦 Génération du client Prisma..."
 npx prisma generate
 
-# Application des migrations (on force l'URL si elle existe pour être sûr)
+# Application des migrations
 echo "🗄️ Application des migrations..."
 npx prisma migrate deploy
 
 # Remplissage des données initiales (Seed)
+# On lance directement via ts-node pour contourner les bugs de config de Prisma 7
 echo "🌱 Remplissage de la base de données (Seed)..."
-npx prisma db seed
+npx ts-node prisma/seed.ts
 
 # Démarrage de l'application NestJS
 echo "✨ Lancement de l'application..."
