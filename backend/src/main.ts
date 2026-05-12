@@ -9,7 +9,11 @@ async function bootstrap() {
 
   // Configuration CORS
   app.enableCors({
-    origin: '*', // À restreindre en production
+    origin: [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'https://digitallearning-hub.kelensitech.cloud'
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
