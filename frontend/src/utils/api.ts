@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 async function request(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem('auth_token');
   
-  const headers: HeadersInit = {
+  const headers: any = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
@@ -19,7 +19,6 @@ async function request(endpoint: string, options: RequestInit = {}) {
 
   if (response.status === 401) {
     localStorage.removeItem('auth_token');
-    // On pourrait rediriger vers /login ici si on utilisait un router
   }
 
   if (!response.ok) {

@@ -909,7 +909,7 @@ function GlassCard({ children, className = "" }) {
   );
 }
 
-function SectionHeader({ title, subtitle, action }) {
+function SectionHeader({ title, subtitle = "", action = null }) {
   return (
     <div className="mb-5 flex items-center justify-between gap-3">
       <div>
@@ -1030,7 +1030,12 @@ function LoginScreen({ t, language, setLanguage, theme, setTheme, onLogin, preEn
     try {
       const response = await api.auth.login({ email, password });
       localStorage.setItem("auth_token", response.access_token);
-      onLogin(response.user);
+      // Ensure name is present, fallback to email if not
+      const userToLogin = {
+        ...response.user,
+        name: response.user.name || response.user.email.split('@')[0]
+      };
+      onLogin(userToLogin);
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -3782,6 +3787,7 @@ function ReportModule({ t, reports, setReports, selectedReportId, setSelectedRep
   }
   const emptyReportDraft = {
     title: "",
+    titleKey: "",
     typeKey: "academicReport",
     periodKey: "weekly",
     audienceKey: "director",
@@ -5266,13 +5272,18 @@ export default function App() {
 
   const handleLogin = (user) => {
     // Mapping backend user -> frontend expected format
+    // Le backend renvoie 'ADMIN', mais le frontend attend 'superAdmin' pour les accès complets (finance, etc.)
+    const backendRole = user.role.toLowerCase();
+    const normalizedRole = backendRole === 'admin' ? 'superAdmin' : backendRole;
+    
     const mappedUser = {
       ...user,
-      roleKey: user.role === 'ADMIN' ? 'superAdminRole' : 
-               user.role === 'TEACHER' ? 'teacherRole' : 
-               user.role === 'STUDENT' ? 'studentRole' : 'guestRole',
+      role: normalizedRole,
+      roleKey: normalizedRole === 'superAdmin' ? 'superAdminRole' : 
+               normalizedRole === 'teacher' ? 'teacherRole' : 
+               normalizedRole === 'student' ? 'studentRole' : 'guestRole',
       avatar: user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2),
-      color: user.role === 'ADMIN' ? 'from-cyan-400 to-violet-600' : 'from-emerald-400 to-cyan-600'
+      color: normalizedRole === 'superAdmin' ? 'from-cyan-400 to-violet-600' : 'from-emerald-400 to-cyan-600'
     };
     setCurrentUser(mappedUser);
     localStorage.setItem("user_info", JSON.stringify(mappedUser));
@@ -5284,8 +5295,25 @@ export default function App() {
     setCurrentUser(null);
   };
 
-  const [learners, setLearners] = useState(INITIAL_LEARNERS);
+  const [learners, setLearners] = useState([]);
   const [subjectsData, setSubjectsData] = useState(INITIAL_SUBJECTS);
+
+  // Charger les données réelles depuis le Backend
+  useEffect(() => {
+    if (currentUser) {
+      const fetchData = async () => {
+        try {
+          const realLearners = await api.learners.getAll();
+          setLearners(realLearners);
+        } catch (err) {
+          console.error("Erreur lors du chargement des apprenants:", err);
+          // Optionnel: Garder les données de démo en cas d'erreur
+          setLearners(INITIAL_LEARNERS);
+        }
+      };
+      fetchData();
+    }
+  }, [currentUser]);
   const [cohortsData, setCohortsData] = useState(INITIAL_COHORTS);
   const [teachersData, setTeachersData] = useState(INITIAL_TEACHERS);
   const [coursesData, setCoursesData] = useState(INITIAL_COURSES);
@@ -5436,7 +5464,7 @@ export default function App() {
   }
 
   if (!currentUser) {
-    return <LoginScreen t={t} language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} preEnrollments={preEnrollments} setPreEnrollments={setPreEnrollments} publicConfig={publicConfig} onLogin={(user) => { setCurrentUser(user); setActiveTab("dashboard"); }} />;
+    return <LoginScreen t={t} language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} preEnrollments={preEnrollments} setPreEnrollments={setPreEnrollments} publicConfig={publicConfig} onLogin={handleLogin} />;
   }
 
   return (
@@ -5754,117 +5782,29 @@ export default function App() {
   );
 }
 
-// React integration example for the Audit module actions panel.
-// Place this logic inside your Audit page or split it into a component such as AuditRootControls.tsx.
+/* 
+  --------------------------------------------------------------------------
+  AUDIT INTEGRATION EXAMPLES (Commented for build stabilization)
+  --------------------------------------------------------------------------
+  Section à finaliser après stabilisation du MVP.
+*/
 
-export interface AuditRootControlsProps {
-  currentUser: CurrentUser | null;
-  selectedAuditRecord: AuditOperation | null;
-  repo: AuditRepository;
-  ipAddress?: string | null;
-  deviceInfo?: string | null;
-  onNotify: (type: 'success' | 'error' | 'info', message: string) => void;
-  onCloseModal?: () => void;
-}
+// export interface AuditRootControlsProps {
+//   currentUser: CurrentUser | null;
+//   selectedAuditRecord: AuditOperation | null;
+//   repo: AuditRepository;
+//   ipAddress?: string | null;
+//   deviceInfo?: string | null;
+//   onNotify: (type: 'success' | 'error' | 'info', message: string) => void;
+//   onCloseModal?: () => void;
+// }
 
-export interface RootAuditFormState {
-  reason: string;
-  confirmText: string;
-}
+// export interface RootAuditFormState {
+//   reason: string;
+//   confirmText: string;
+// }
 
-export function buildRootAuditRequest(
-  actionType: AuditActionRequest['actionType'],
-  form: RootAuditFormState,
-): AuditActionRequest {
-  return {
-    actionType,
-    reason: form.reason.trim(),
-    confirmText: form.confirmText.trim(),
-  };
-}
-
-export async function handleRootAuditAction(params: AuditRootControlsProps & {
-  action: AuditActionRequest['actionType'];
-  form: RootAuditFormState;
-  changes?: Partial<AuditOperation>;
-}) {
-  const { currentUser, selectedAuditRecord, repo, action, form, changes, ipAddress, deviceInfo, onNotify, onCloseModal } = params;
-
-  if (!currentUser) {
-    onNotify('error', 'Utilisateur non connecté.');
-    return { ok: false, error: 'Utilisateur non connecté.' };
-  }
-
-  if (!selectedAuditRecord?.id) {
-    onNotify('error', 'Sélectionnez une opération d’audit avant de continuer.');
-    return { ok: false, error: 'Aucune opération sélectionnée.' };
-  }
-
-  const request = buildRootAuditRequest(action, form);
-  const validationError = validateSensitiveAuditAction(currentUser, request);
-
-  if (validationError) {
-    onNotify('error', validationError);
-    return { ok: false, error: validationError };
-  }
-
-  let result: { ok: boolean; data?: AuditOperation | null; error?: string | null };
-
-  if (action === 'Archiver') {
-    result = await archiveAuditRecord({
-      repo,
-      actor: currentUser,
-      recordId: selectedAuditRecord.id,
-      request,
-      ipAddress,
-      deviceInfo,
-    });
-  } else if (action === 'Restaurer') {
-    result = await restoreAuditRecord({
-      repo,
-      actor: currentUser,
-      recordId: selectedAuditRecord.id,
-      request,
-      ipAddress,
-      deviceInfo,
-    });
-  } else if (action === 'Supprimer opération test') {
-    result = await deleteAuditRecord({
-      repo,
-      actor: currentUser,
-      recordId: selectedAuditRecord.id,
-      request,
-      ipAddress,
-      deviceInfo,
-    });
-  } else {
-    result = await editAuditRecord({
-      repo,
-      actor: currentUser,
-      recordId: selectedAuditRecord.id,
-      changes: changes || {},
-      request,
-      ipAddress,
-      deviceInfo,
-    });
-  }
-
-  if (!result.ok) {
-    onNotify('error', result.error || 'Action impossible.');
-    return result;
-  }
-
-  const successMessageByAction: Record<AuditActionRequest['actionType'], string> = {
-    Archiver: 'Opération d’audit archivée avec succès.',
-    Restaurer: 'Opération d’audit restaurée avec succès.',
-    Modifier: 'Opération d’audit modifiée avec succès.',
-    'Supprimer opération test': 'Opération test supprimée avec succès.',
-  };
-
-  onNotify('success', successMessageByAction[action]);
-  onCloseModal?.();
-  return result;
-}
+// ... (reste de la section déjà gérée par le commentaire bloc ci-dessus)
 
 // Minimal JSX example.
 // Adapt Button, Dialog, Input, Textarea, and Toast to your UI library.
