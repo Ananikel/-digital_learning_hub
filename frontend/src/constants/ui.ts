@@ -22,7 +22,9 @@ export const ICONS = {
   restore: "↥",
   reset: "🗑️",
   audit: "🛡️",
-  subjects: "📘"
+  subjects: "📘",
+  menu: "☰",
+  close: "✕"
 };
 
 export const PROGRAMS = [

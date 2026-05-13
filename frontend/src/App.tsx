@@ -5463,20 +5463,36 @@ export default function App() {
     if (["backup", "restore", "reset", "audit"].includes(activeTab)) { setMaintenanceData((items) => items.filter((item) => item.id !== id)); setSelectedMaintenanceId(maintenanceData.find((item) => item.id !== id && item.moduleId === activeTab)?.id || ""); }
   }
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Fermer le menu mobile lors du changement d'onglet
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [activeTab]);
+
   if (!currentUser) {
     return <LoginScreen t={t} language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} preEnrollments={preEnrollments} setPreEnrollments={setPreEnrollments} publicConfig={publicConfig} onLogin={handleLogin} />;
   }
 
   return (
-    <div className={cn("min-h-screen overflow-hidden bg-[#070b1d] text-white", theme === "light" ? "theme-light" : "theme-navy")}>
+    <div className={cn("min-h-screen overflow-x-hidden bg-[#070b1d] text-white", theme === "light" ? "theme-light" : "theme-navy")}>
       <ThemeStyleBridge theme={theme} />
       <div className="pointer-events-none fixed -left-48 -top-48 h-[34rem] w-[34rem] rounded-full bg-cyan-500/25 blur-3xl" />
       <div className="pointer-events-none fixed right-0 top-0 h-[38rem] w-[38rem] rounded-full bg-violet-600/25 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 left-1/2 h-[30rem] w-[30rem] rounded-full bg-orange-500/15 blur-3xl" />
 
-      <div className="relative mx-auto flex max-w-[1500px] gap-4 p-3 sm:gap-5 sm:p-5">
-        <aside className="hidden max-h-[calc(100vh-40px)] w-72 shrink-0 overflow-y-auto rounded-3xl border border-white/10 bg-[#0b1025]/80 p-5 shadow-2xl shadow-black/30 backdrop-blur-2xl lg:block">
-          <div className="mb-8 flex items-center gap-3">
+      {/* Overlay Mobile */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
+      {/* Sidebar Mobile & Desktop */}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-[70] w-72 transform border-r border-white/10 bg-[#0b1025]/95 p-5 transition-transform duration-300 ease-in-out lg:relative lg:z-auto lg:block lg:w-72 lg:translate-x-0 lg:rounded-3xl lg:border lg:bg-[#0b1025]/80 lg:shadow-2xl lg:shadow-black/30 lg:backdrop-blur-2xl",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div className="rounded-2xl bg-gradient-to-br from-cyan-400 via-violet-500 to-orange-400 p-[2px] shadow-lg shadow-violet-600/30">
               <div className="rounded-2xl bg-[#0b1025] p-3 text-2xl">{ICONS.courses}</div>
             </div>
@@ -5485,26 +5501,38 @@ export default function App() {
               <p className="text-xs text-slate-400">{t("tagline")}</p>
             </div>
           </div>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl bg-white/5 p-2 text-slate-400 lg:hidden">
+            {ICONS.close || "✕"}
+          </button>
+        </div>
 
-          <nav className="space-y-2">
-            {navItems.map((item) => (
-              <button key={item.id} onClick={() => setActiveTab(item.id)} className={cn("group relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition duration-300", activeTab === item.id ? "bg-violet-600 text-white shadow-lg shadow-violet-600/40" : "text-slate-400 hover:translate-x-1 hover:bg-white/10 hover:text-white")}>
-                {activeTab === item.id ? <span className="absolute -left-5 h-7 w-1 rounded-full bg-violet-400" /> : null}
-                <span className="text-base transition group-hover:scale-125">{item.icon}</span>
-                <span className="font-medium">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </aside>
+        <nav className="space-y-2 overflow-y-auto max-h-[calc(100vh-140px)] pr-2 scrollbar-hide">
+          {navItems.map((item) => (
+            <button key={item.id} onClick={() => setActiveTab(item.id)} className={cn("group relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition duration-300", activeTab === item.id ? "bg-violet-600 text-white shadow-lg shadow-violet-600/40" : "text-slate-400 hover:translate-x-1 hover:bg-white/10 hover:text-white")}>
+              {activeTab === item.id ? <span className="absolute -left-5 h-7 w-1 rounded-full bg-violet-400 lg:block hidden" /> : null}
+              <span className="text-base transition group-hover:scale-125">{item.icon}</span>
+              <span className="font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
 
+      <div className="relative mx-auto flex max-w-[1500px] flex-1 flex-col gap-4 p-3 sm:gap-5 sm:p-5 lg:flex-row">
+        {/* On retire l'aside original car il est fusionné ci-dessus */}
+        
         <main className="min-w-0 flex-1 pb-24 lg:pb-0">
           <header className="mb-4 flex flex-col gap-4 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl font-semibold tracking-tight text-white">{activeLabel}</h1>
-                <span className="hidden rounded-full border border-violet-400/30 bg-violet-500/15 px-3 py-1 text-xs font-medium text-violet-200 md:inline-flex">{t("brand")}</span>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setIsMobileMenuOpen(true)} className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#0b1025]/80 text-xl text-white shadow-lg lg:hidden">
+                {ICONS.menu || "☰"}
+              </button>
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{activeLabel}</h1>
+                  <span className="hidden rounded-full border border-violet-400/30 bg-violet-500/15 px-3 py-1 text-xs font-medium text-violet-200 md:inline-flex">{t("brand")}</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-400 sm:mt-2 sm:text-sm">{t("overviewSub")}</p>
               </div>
-              <p className="mt-2 max-w-xl text-sm text-slate-400">{t("overviewSub")}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[680px] lg:grid-cols-[minmax(240px,1fr)_auto_auto_auto_auto] lg:items-center">
               <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-[#0b1025]/80 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl">
