@@ -5475,84 +5475,85 @@ export default function App() {
   }
 
   return (
-    <div className={cn("min-h-screen w-full bg-[#070b1d] text-white", theme === "light" ? "theme-light" : "theme-navy")}>
+    <div className={cn("min-h-screen overflow-x-hidden bg-[#070b1d] text-white", theme === "light" ? "theme-light" : "theme-navy")}>
       <ThemeStyleBridge theme={theme} />
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -left-48 -top-48 h-[34rem] w-[34rem] rounded-full bg-cyan-500/20 blur-3xl" />
-        <div className="absolute right-0 top-0 h-[38rem] w-[38rem] rounded-full bg-violet-600/20 blur-3xl" />
-      </div>
+      <div className="pointer-events-none fixed -left-48 -top-48 h-[34rem] w-[34rem] rounded-full bg-cyan-500/25 blur-3xl" />
+      <div className="pointer-events-none fixed right-0 top-0 h-[38rem] w-[38rem] rounded-full bg-violet-600/25 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 left-1/2 h-[30rem] w-[30rem] rounded-full bg-orange-500/15 blur-3xl" />
 
       {/* Overlay Mobile */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
-      <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
-        {/* Sidebar */}
-        <aside className={cn(
-          "fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r border-white/10 bg-[#0b1025] p-5 transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        )}>
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-gradient-to-br from-cyan-400 via-violet-500 to-orange-400 p-[2px] shadow-lg shadow-violet-600/30">
-                <div className="rounded-2xl bg-[#0b1025] p-3 text-2xl">{ICONS.courses}</div>
-              </div>
+      {/* Sidebar Mobile & Desktop */}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-[70] w-72 transform border-r border-white/10 bg-[#0b1025]/95 p-5 transition-transform duration-300 ease-in-out lg:relative lg:z-auto lg:block lg:w-72 lg:translate-x-0 lg:rounded-3xl lg:border lg:bg-[#0b1025]/80 lg:shadow-2xl lg:shadow-black/30 lg:backdrop-blur-2xl",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-gradient-to-br from-cyan-400 via-violet-500 to-orange-400 p-[2px] shadow-lg shadow-violet-600/30">
+              <div className="rounded-2xl bg-[#0b1025] p-3 text-2xl">{ICONS.courses}</div>
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-white">{t("brand")}</h1>
+              <p className="text-xs text-slate-400">{t("tagline")}</p>
+            </div>
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl bg-white/5 p-2 text-slate-400 lg:hidden">
+            {ICONS.close || "✕"}
+          </button>
+        </div>
+
+        <nav className="space-y-2 overflow-y-auto max-h-[calc(100vh-140px)] pr-2 scrollbar-hide">
+          {navItems.map((item) => (
+            <button key={item.id} onClick={() => setActiveTab(item.id)} className={cn("group relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition duration-300", activeTab === item.id ? "bg-violet-600 text-white shadow-lg shadow-violet-600/40" : "text-slate-400 hover:translate-x-1 hover:bg-white/10 hover:text-white")}>
+              {activeTab === item.id ? <span className="absolute -left-5 h-7 w-1 rounded-full bg-violet-400 lg:block hidden" /> : null}
+              <span className="text-base transition group-hover:scale-125">{item.icon}</span>
+              <span className="font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      <div className="relative mx-auto flex max-w-[1500px] flex-1 flex-col gap-4 p-3 sm:gap-5 sm:p-5 lg:flex-row">
+        {/* On retire l'aside original car il est fusionné ci-dessus */}
+        
+        <main className="min-w-0 flex-1 pb-24 lg:pb-0">
+          <header className="mb-4 flex flex-col gap-4 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setIsMobileMenuOpen(true)} className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#0b1025]/80 text-xl text-white shadow-lg lg:hidden">
+                {ICONS.menu || "☰"}
+              </button>
               <div>
-                <h1 className="text-lg font-semibold text-white">{t("brand")}</h1>
-                <p className="text-xs text-slate-400">{t("tagline")}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{activeLabel}</h1>
+                  <span className="hidden rounded-full border border-violet-400/30 bg-violet-500/15 px-3 py-1 text-xs font-medium text-violet-200 md:inline-flex">{t("brand")}</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-400 sm:mt-2 sm:text-sm">{t("overviewSub")}</p>
               </div>
             </div>
-            <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl bg-white/5 p-2 text-slate-400 lg:hidden">
-              {ICONS.close}
-            </button>
-          </div>
-
-          <nav className="flex-1 space-y-1.5 overflow-y-auto pr-2 scrollbar-hide">
-            {navItems.map((item) => (
-              <button key={item.id} onClick={() => setActiveTab(item.id)} className={cn("group relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition duration-300", activeTab === item.id ? "bg-violet-600 text-white shadow-lg shadow-violet-600/40" : "text-slate-400 hover:bg-white/5 hover:text-white")}>
-                {activeTab === item.id ? <span className="absolute -left-5 h-7 w-1 rounded-full bg-violet-400" /> : null}
-                <span className="text-base transition group-hover:scale-110">{item.icon}</span>
-                <span className="font-medium">{item.label}</span>
+            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[680px] lg:grid-cols-[minmax(240px,1fr)_auto_auto_auto_auto] lg:items-center">
+              <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-[#0b1025]/80 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl">
+                <span className="text-slate-400">{ICONS.search}</span>
+                <input value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} placeholder={t("search")} className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500" />
+              </div>
+              <select value={language} onChange={(event) => setLanguage(event.target.value)} className="rounded-2xl border border-white/10 bg-[#0b1025]/80 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl">
+                <option className="text-slate-950" value="fr">Français</option>
+                <option className="text-slate-950" value="en">English</option>
+              </select>
+              <select value={theme} onChange={(event) => setTheme(event.target.value)} className="rounded-2xl border border-white/10 bg-[#0b1025]/80 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl">
+                <option className="text-slate-950" value="navy">{t("navyMode")}</option>
+                <option className="text-slate-950" value="light">{t("lightMode")}</option>
+              </select>
+              <UserMenu t={t} user={currentUser} onLogout={() => { setCurrentUser(null); setActiveTab("dashboard"); }} />
+              <button onClick={() => setActiveTab("learners")} className="relative rounded-2xl border border-white/10 bg-[#0b1025]/80 px-4 py-3 text-lg backdrop-blur-xl transition hover:bg-white/10">
+                {ICONS.bell}
+                {preEnrollments.length ? <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white shadow-lg shadow-orange-500/40">{preEnrollments.length}</span> : null}
               </button>
-            ))}
-          </nav>
-        </aside>
-
-        {/* Main Area */}
-        <main className="flex-1 min-w-0">
-          <div className="mx-auto w-full max-w-[1500px] p-4 sm:p-6 lg:p-8">
-            <header className="mb-6 flex flex-col gap-4 lg:mb-8 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-4">
-                <button onClick={() => setIsMobileMenuOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#0b1025]/80 text-xl text-white shadow-lg lg:hidden">
-                  {ICONS.menu}
-                </button>
-                <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{activeLabel}</h1>
-                    <span className="hidden rounded-full border border-violet-400/30 bg-violet-500/15 px-3 py-1 text-[10px] font-bold text-violet-200 md:inline-flex uppercase tracking-widest">{t("brand")}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-400 sm:text-sm">{t("overviewSub")}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto">
-                <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-[#0b1025]/60 px-4 py-2.5 shadow-sm">
-                  <span className="text-slate-400">{ICONS.search}</span>
-                  <input value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} placeholder={t("search")} className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500" />
-                </div>
-                <select value={language} onChange={(event) => setLanguage(event.target.value)} className="rounded-2xl border border-white/10 bg-[#0b1025]/60 px-4 py-2.5 text-sm text-white outline-none">
-                  <option className="text-slate-950" value="fr">Français</option>
-                  <option className="text-slate-950" value="en">English</option>
-                </select>
-                <select value={theme} onChange={(event) => setTheme(event.target.value)} className="rounded-2xl border border-white/10 bg-[#0b1025]/60 px-4 py-2.5 text-sm text-white outline-none">
-                  <option className="text-slate-950" value="navy">{t("navyMode")}</option>
-                  <option className="text-slate-950" value="light">{t("lightMode")}</option>
-                </select>
-                <div className="h-8 w-[1px] bg-white/10 mx-1 hidden sm:block" />
-                <UserMenu t={t} user={currentUser} onLogout={() => { setCurrentUser(null); setActiveTab("dashboard"); }} />
-              </div>
-            </header>
+            </div>
+          </header>
 
           <div className="mb-4 flex gap-2 overflow-x-auto pb-2 lg:hidden">
             {navItems.map((item) => (
