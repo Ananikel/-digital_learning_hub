@@ -57,26 +57,28 @@ export class SubjectsService {
   }
 
   async update(id: number, data: any) {
-    // Delete old levels and recreate
-    await this.prisma.level.deleteMany({ where: { subjectId: id } });
+    const updateData: any = {};
+    if (data.nameFr !== undefined) updateData.nameFr = data.nameFr;
+    if (data.nameEn !== undefined) updateData.nameEn = data.nameEn;
+    if (data.code !== undefined) updateData.code = data.code;
+    if (data.categoryKey !== undefined) updateData.category = data.categoryKey;
+    if (data.color !== undefined) updateData.color = data.color;
+    if (data.description !== undefined) updateData.description = data.description;
+
+    if (data.levels !== undefined) {
+      await this.prisma.level.deleteMany({ where: { subjectId: id } });
+      updateData.levels = {
+        create: (data.levels || []).map((levelName: string) => ({
+          name: levelName,
+          duration: data.duration,
+          baseFee: data.baseFee
+        }))
+      };
+    }
 
     return this.prisma.subject.update({
       where: { id },
-      data: {
-        nameFr: data.nameFr,
-        nameEn: data.nameEn,
-        code: data.code,
-        category: data.categoryKey,
-        color: data.color,
-        description: data.description,
-        levels: {
-          create: (data.levels || []).map((levelName: string) => ({
-            name: levelName,
-            duration: data.duration,
-            baseFee: data.baseFee
-          }))
-        }
-      },
+      data: updateData,
       include: { levels: true }
     });
   }

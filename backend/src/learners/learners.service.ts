@@ -10,21 +10,23 @@ export class LearnersService {
       include: {
         enrollments: {
           include: {
-            cohort: true
+            cohort: {
+              include: {
+                subject: true
+              }
+            }
           }
         }
       },
     });
     
-    // Map backend Student to frontend Learner
     return students.map(student => ({
       id: student.id,
       name: student.fullName,
       phone: student.phone,
       statusKey: student.status,
-      // Default mappings for fields not yet in DB
-      subjectKey: "german",
-      level: "A1",
+      subjectKey: student.enrollments[0]?.cohort.subject.code.toLowerCase() || "german",
+      level: student.enrollments[0]?.cohort.levelId ? "A1" : "A1",
       progress: 0,
       attendance: 100,
       paid: 0,
@@ -39,7 +41,6 @@ export class LearnersService {
   }
 
   async create(data: any) {
-    // Flattened data from frontend
     return this.prisma.student.create({
       data: {
         fullName: data.name || "Nouveau Apprenant",
@@ -50,13 +51,14 @@ export class LearnersService {
   }
 
   async update(id: number, data: any) {
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.fullName = data.name;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.statusKey !== undefined) updateData.status = data.statusKey;
+    
     return this.prisma.student.update({
       where: { id },
-      data: {
-        fullName: data.name,
-        phone: data.phone,
-        status: data.statusKey,
-      },
+      data: updateData,
     });
   }
 

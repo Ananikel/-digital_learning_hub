@@ -1,18 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class TeachersService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.teacher.findMany({
+    const teachers = await this.prisma.teacher.findMany({
       include: {
         user: true,
-        cohorts: true,
       },
     });
+
+    return teachers.map(t => ({
+      id: t.id,
+      name: t.fullName,
+      phone: t.phone,
+      email: t.user.email,
+      position: t.qualification || "Formateur",
+      qualification: t.qualification || "Certifié",
+      statusKey: "active",
+      workload: 0,
+      assigned: 0
+    }));
   }
 
   async findOne(id: number) {
@@ -20,21 +30,48 @@ export class TeachersService {
       where: { id },
       include: {
         user: true,
-        cohorts: true,
       },
     });
   }
 
-  async create(data: Prisma.TeacherCreateInput) {
+  async create(data: any) {
+    // Check if user exists
+    let user = await this.prisma.user.findUnique({ where: { email: data.email } });
+    if (!user) {
+        const role = await this.prisma.role.upsert({
+            where: { name: "TEACHER" },
+            update: {},
+            create: { name: "TEACHER" }
+        });
+        user = await this.prisma.user.create({
+            data: {
+                email: data.email || `teacher_${Date.now()}@lms.local`,
+                passwordHash: "dummy",
+                roleId: role.id
+            }
+        });
+    }
+
     return this.prisma.teacher.create({
-      data,
+      data: {
+        fullName: data.name || "Nouveau Enseignant",
+        phone: data.phone,
+        qualification: data.qualification || data.position,
+        userId: user.id
+      },
+      include: { user: true }
     });
   }
 
-  async update(id: number, data: Prisma.TeacherUpdateInput) {
+  async update(id: number, data: any) {
     return this.prisma.teacher.update({
       where: { id },
-      data,
+      data: {
+        fullName: data.name,
+        phone: data.phone,
+        qualification: data.qualification || data.position,
+      },
+      include: { user: true }
     });
   }
 

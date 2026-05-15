@@ -21,8 +21,6 @@ async function bootstrap() {
   // Validation globale des entrées
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Supprime les propriétés non décorées des objets
-      forbidNonWhitelisted: true, // Rejette les requêtes avec des propriétés non autorisées
       transform: true, // Transforme automatiquement les payloads en instances de classe
     }),
   );

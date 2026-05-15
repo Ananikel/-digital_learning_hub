@@ -6,63 +6,79 @@ export class CohortsService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: any) {
-    // Attempt to find or create relations
-    let subject = await this.prisma.subject.findFirst({ where: { code: data.subjectKey.toUpperCase() } });
-    if (!subject) {
-      subject = await this.prisma.subject.create({
-        data: {
-          nameFr: data.subjectKey,
-          nameEn: data.subjectKey,
-          code: data.subjectKey.toUpperCase(),
-          category: "general"
-        }
-      });
-    }
-
-    let level = await this.prisma.level.findFirst({ where: { subjectId: subject.id, name: data.level } });
-    if (!level) {
-      level = await this.prisma.level.create({
-        data: {
-          name: data.level,
-          subjectId: subject.id
-        }
-      });
-    }
-
-    let teacher = await this.prisma.teacher.findFirst();
-    if (!teacher) {
-        // Create a dummy teacher if none exists to avoid 500
-        const user = await this.prisma.user.findFirst() || await this.prisma.user.create({
-            data: {
-                email: "system@lms.local",
-                passwordHash: "dummy",
-                role: { create: { name: "system" } }
-            }
+    try {
+      const subjectCode = (data.subjectKey || "GERMAN").toUpperCase();
+      let subject = await this.prisma.subject.findUnique({ where: { code: subjectCode } });
+      
+      if (!subject) {
+        subject = await this.prisma.subject.create({
+          data: {
+            nameFr: data.subjectKey || "Matière",
+            nameEn: data.subjectKey || "Subject",
+            code: subjectCode,
+            category: "general"
+          }
         });
-        teacher = await this.prisma.teacher.create({
-            data: {
-                fullName: "System Teacher",
-                userId: user.id
-            }
-        });
-    }
-
-    return this.prisma.cohort.create({
-      data: {
-        name: data.nameKey || "Nouvelle Cohorte",
-        subjectId: subject.id,
-        levelId: level.id,
-        teacherId: teacher.id,
-        schedule: data.schedule,
-        capacity: data.capacity,
-        status: data.statusKey || "planned"
-      },
-      include: {
-        subject: true,
-        level: true,
-        teacher: true
       }
-    });
+
+      let level = await this.prisma.level.findFirst({ 
+        where: { subjectId: subject.id, name: data.level || "A1" } 
+      });
+      
+      if (!level) {
+        level = await this.prisma.level.create({
+          data: {
+            name: data.level || "A1",
+            subjectId: subject.id
+          }
+        });
+      }
+
+      let teacher = await this.prisma.teacher.findFirst();
+      if (!teacher) {
+          let user = await this.prisma.user.findUnique({ where: { email: "system@lms.local" } });
+          if (!user) {
+              const role = await this.prisma.role.upsert({
+                  where: { name: "ADMIN" },
+                  update: {},
+                  create: { name: "ADMIN", description: "System Administrator" }
+              });
+              user = await this.prisma.user.create({
+                  data: {
+                      email: "system@lms.local",
+                      passwordHash: "dummy",
+                      roleId: role.id
+                  }
+              });
+          }
+          teacher = await this.prisma.teacher.create({
+              data: {
+                  fullName: "System Teacher",
+                  userId: user.id
+              }
+          });
+      }
+
+      return await this.prisma.cohort.create({
+        data: {
+          name: data.nameKey || "Nouvelle Cohorte",
+          subjectId: subject.id,
+          levelId: level.id,
+          teacherId: teacher.id,
+          schedule: data.schedule || "08:00 - 10:00",
+          capacity: Number(data.capacity) || 20,
+          status: data.statusKey || "planned"
+        },
+        include: {
+          subject: true,
+          level: true,
+          teacher: true
+        }
+      });
+    } catch (error) {
+      console.error("Error in CohortsService.create:", error);
+      throw error;
+    }
   }
 
   async findAll() {
@@ -101,14 +117,15 @@ export class CohortsService {
   }
 
   async update(id: number, data: any) {
+    const updateData: any = {};
+    if (data.nameKey !== undefined) updateData.name = data.nameKey;
+    if (data.schedule !== undefined) updateData.schedule = data.schedule;
+    if (data.capacity !== undefined) updateData.capacity = Number(data.capacity);
+    if (data.statusKey !== undefined) updateData.status = data.statusKey;
+
     return this.prisma.cohort.update({
       where: { id },
-      data: {
-        name: data.nameKey,
-        schedule: data.schedule,
-        capacity: data.capacity,
-        status: data.statusKey
-      },
+      data: updateData,
       include: {
         subject: true,
         level: true,

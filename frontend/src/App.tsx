@@ -1227,14 +1227,14 @@ function RecordActions({ t, title, record, details, onSave, onDelete, canEdit = 
     setMode("edit");
   }
 
-  function saveEdit() {
+  async function saveEdit() {
     const cleaned = Object.fromEntries(Object.entries(draft).map(([key, value]) => {
       const original = record?.[key];
       if (typeof original === "number") return [key, Number(value) || 0];
       if (typeof original === "boolean") return [key, value === true || value === "true"];
       return [key, value];
     }));
-    onSave?.(cleaned);
+    await onSave?.(cleaned);
     setMode(null);
   }
 
@@ -2630,7 +2630,7 @@ function AttendanceModule({ t, learners = [], courses = [], cohorts = [], attend
     });
   }
 
-  function saveAttendanceForm() {
+  async function saveAttendanceForm() {
     if (!canManageAttendance) return;
     const normalizedEntry = {
       ...attendanceDraft,
@@ -2641,18 +2641,24 @@ function AttendanceModule({ t, learners = [], courses = [], cohorts = [], attend
       note: attendanceDraft.note.trim() || t("demoAttendanceNote")
     };
 
-    if (editingAttendanceId) {
-      setAttendanceRows((previous) => previous.map((item) => item.id === editingAttendanceId ? { ...item, ...normalizedEntry } : item));
-      setSelectedAttendanceId(editingAttendanceId);
-    } else {
-      const newEntry = {
-        id: `ATT-${String(attendanceRows.length + 1).padStart(3, "0")}`,
-        ...normalizedEntry
-      };
-      setAttendanceRows((previous) => [newEntry, ...previous]);
-      setSelectedAttendanceId(newEntry.id);
+    try {
+      if (editingAttendanceId) {
+        const updated = await api.attendance.update(editingAttendanceId, normalizedEntry);
+        setAttendanceRows((previous) => previous.map((item) => item.id === editingAttendanceId ? updated : item));
+        setSelectedAttendanceId(editingAttendanceId);
+      } else {
+        // En mode démo car l'API create attendance n'est pas encore implémentée côté backend
+        const newEntry = {
+          id: `ATT-${String(attendanceRows.length + 1).padStart(3, "0")}`,
+          ...normalizedEntry
+        };
+        setAttendanceRows((previous) => [newEntry, ...previous]);
+        setSelectedAttendanceId(newEntry.id);
+      }
+      resetAttendanceForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement de la présence:", err);
     }
-    resetAttendanceForm();
   }
 
   const rows = useMemo(() => attendanceRows.filter((entry) => {
@@ -2914,7 +2920,7 @@ function AssessmentModule({ t, learners = [], courses = [], assessments, setAsse
     });
   }
 
-  function saveAssessmentForm() {
+  async function saveAssessmentForm() {
     if (!canManageAssessments) return;
     const score = Math.max(0, Number(assessmentDraft.score) || 0);
     const maxScore = Math.max(1, Number(assessmentDraft.maxScore) || 100);
@@ -2928,18 +2934,24 @@ function AssessmentModule({ t, learners = [], courses = [], assessments, setAsse
       note: assessmentDraft.note.trim() || t("assessmentNote")
     };
 
-    if (editingAssessmentId) {
-      setAssessments((previous) => previous.map((item) => item.id === editingAssessmentId ? { ...item, ...normalizedAssessment } : item));
-      setSelectedAssessmentId(editingAssessmentId);
-    } else {
-      const newAssessment = {
-        id: `ASM-${String(assessments.length + 1).padStart(3, "0")}`,
-        ...normalizedAssessment
-      };
-      setAssessments((previous) => [newAssessment, ...previous]);
-      setSelectedAssessmentId(newAssessment.id);
+    try {
+      if (editingAssessmentId) {
+        const updated = await api.assessments.update(editingAssessmentId, normalizedAssessment);
+        setAssessments((previous) => previous.map((item) => item.id === editingAssessmentId ? updated : item));
+        setSelectedAssessmentId(editingAssessmentId);
+      } else {
+        // En mode démo car l'API create assessments n'est pas encore implémentée côté backend
+        const newAssessment = {
+          id: `ASM-${String(assessments.length + 1).padStart(3, "0")}`,
+          ...normalizedAssessment
+        };
+        setAssessments((previous) => [newAssessment, ...previous]);
+        setSelectedAssessmentId(newAssessment.id);
+      }
+      resetAssessmentForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement de l'évaluation:", err);
     }
-    resetAssessmentForm();
   }
 
   const rows = useMemo(() => assessments.filter((item) => {
@@ -3160,7 +3172,7 @@ function LibraryModule({ t, courses = [], resources, setResources, selectedResou
     });
   }
 
-  function saveResourceForm() {
+  async function saveResourceForm() {
     if (!canManageLibrary) return;
     const normalizedResource = {
       ...resourceDraft,
@@ -3172,18 +3184,24 @@ function LibraryModule({ t, courses = [], resources, setResources, selectedResou
       fileUrl: resourceDraft.fileUrl.trim()
     };
 
-    if (editingResourceId) {
-      setResources((previous) => previous.map((item) => item.id === editingResourceId ? { ...item, ...normalizedResource } : item));
-      setSelectedResourceId(editingResourceId);
-    } else {
-      const newResource = {
-        id: `RES-${String(resources.length + 1).padStart(3, "0")}`,
-        ...normalizedResource
-      };
-      setResources((previous) => [newResource, ...previous]);
-      setSelectedResourceId(newResource.id);
+    try {
+      if (editingResourceId) {
+        const updated = await api.resources.update(editingResourceId, normalizedResource);
+        setResources((previous) => previous.map((item) => item.id === editingResourceId ? updated : item));
+        setSelectedResourceId(editingResourceId);
+      } else {
+        // En mode démo car l'API create resources n'est pas encore implémentée côté backend
+        const newResource = {
+          id: `RES-${String(resources.length + 1).padStart(3, "0")}`,
+          ...normalizedResource
+        };
+        setResources((previous) => [newResource, ...previous]);
+        setSelectedResourceId(newResource.id);
+      }
+      resetResourceForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement de la ressource:", err);
     }
-    resetResourceForm();
   }
 
   const rows = useMemo(() => resources.filter((resource) => {
@@ -3512,7 +3530,7 @@ function PaymentModule({ t, payments, setPayments, selectedPaymentId, setSelecte
     });
   }
 
-  function savePaymentForm() {
+  async function savePaymentForm() {
     if (!canManagePayments) return;
     const totalFees = Math.max(0, Number(paymentDraft.totalFees) || 0);
     const amountPaid = Math.max(0, Number(paymentDraft.amountPaid) || 0);
@@ -3525,18 +3543,20 @@ function PaymentModule({ t, payments, setPayments, selectedPaymentId, setSelecte
       receipt: paymentDraft.receipt || `RC-${String(payments.length + 1).padStart(4, "0")}`
     };
 
-    if (editingPaymentId) {
-      setPayments((previous) => previous.map((item) => item.id === editingPaymentId ? { ...item, ...normalizedPayment } : item));
-      setSelectedPaymentId(editingPaymentId);
-    } else {
-      const newPayment = {
-        id: `PAY-${String(payments.length + 1).padStart(3, "0")}`,
-        ...normalizedPayment
-      };
-      setPayments((previous) => [newPayment, ...previous]);
-      setSelectedPaymentId(newPayment.id);
+    try {
+      if (editingPaymentId) {
+        const updated = await api.payments.update(editingPaymentId, normalizedPayment);
+        setPayments((previous) => previous.map((item) => item.id === editingPaymentId ? updated : item));
+        setSelectedPaymentId(editingPaymentId);
+      } else {
+        const created = await api.payments.create(normalizedPayment);
+        setPayments((previous) => [created, ...previous]);
+        setSelectedPaymentId(created.id);
+      }
+      resetPaymentForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement du paiement:", err);
     }
-    resetPaymentForm();
   }
 
   const rows = useMemo(() => payments.filter((payment) => {

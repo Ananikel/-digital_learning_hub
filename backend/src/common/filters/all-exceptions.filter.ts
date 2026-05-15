@@ -17,6 +17,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
+    const request = ctx.getRequest();
 
     const httpStatus =
       exception instanceof HttpException
@@ -34,7 +35,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         : exceptionResponse;
 
     this.logger.error(
-      `HTTP Status: ${httpStatus} Error Message: ${JSON.stringify(errorMessage)}`,
+      `URL: ${httpAdapter.getRequestUrl(request)} | Body: ${JSON.stringify(request.body)} | Status: ${httpStatus} | Error: ${JSON.stringify(errorMessage)}`,
       exception instanceof Error ? exception.stack : undefined,
     );
 
