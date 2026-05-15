@@ -13,6 +13,10 @@ RUN npm install
 # Copie du reste du code
 COPY . .
 
+# On fournit une DATABASE_URL fictive pour permettre la génération de Prisma au build
+# La vraie URL sera fournie par Coolify au RUNTIME.
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
 # Génération de Prisma Client (nécessaire pour la compilation NestJS)
 RUN npx prisma generate
 
