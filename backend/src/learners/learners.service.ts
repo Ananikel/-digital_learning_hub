@@ -1,40 +1,62 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class LearnersService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.student.findMany({
+    const students = await this.prisma.student.findMany({
       include: {
-        user: true,
-        enrollments: true,
+        enrollments: {
+          include: {
+            cohort: true
+          }
+        }
       },
     });
+    
+    // Map backend Student to frontend Learner
+    return students.map(student => ({
+      id: student.id,
+      name: student.fullName,
+      phone: student.phone,
+      statusKey: student.status,
+      // Default mappings for fields not yet in DB
+      subjectKey: "german",
+      level: "A1",
+      progress: 0,
+      attendance: 100,
+      paid: 0,
+      balance: 0
+    }));
   }
 
   async findOne(id: number) {
     return this.prisma.student.findUnique({
       where: { id },
-      include: {
-        user: true,
-        enrollments: true,
+    });
+  }
+
+  async create(data: any) {
+    // Flattened data from frontend
+    return this.prisma.student.create({
+      data: {
+        fullName: data.name || "Nouveau Apprenant",
+        phone: data.phone,
+        status: data.statusKey || "active",
       },
     });
   }
 
-  async create(data: Prisma.StudentCreateInput) {
-    return this.prisma.student.create({
-      data,
-    });
-  }
-
-  async update(id: number, data: Prisma.StudentUpdateInput) {
+  async update(id: number, data: any) {
     return this.prisma.student.update({
       where: { id },
-      data,
+      data: {
+        fullName: data.name,
+        phone: data.phone,
+        status: data.statusKey,
+      },
     });
   }
 

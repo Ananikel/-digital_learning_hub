@@ -1,42 +1,88 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SubjectsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.subject.findMany({
+    const subjects = await this.prisma.subject.findMany({
       include: {
-        levels: true,
-      },
+        levels: true
+      }
     });
+
+    return subjects.map(s => ({
+      id: s.id,
+      subjectKey: s.code.toLowerCase(),
+      nameFr: s.nameFr,
+      nameEn: s.nameEn,
+      code: s.code,
+      categoryKey: s.category,
+      color: s.color || "cyan",
+      description: s.description || "",
+      levels: s.levels.map(l => l.name),
+      duration: s.levels[0]?.duration || "3 mois",
+      baseFee: s.levels[0]?.baseFee || 0,
+      statusKey: "subjectStatusActive"
+    }));
   }
 
   async findOne(id: number) {
     return this.prisma.subject.findUnique({
       where: { id },
-      include: {
-        levels: true,
-      },
+      include: { levels: true }
     });
   }
 
-  async create(data: Prisma.SubjectCreateInput) {
+  async create(data: any) {
     return this.prisma.subject.create({
-      data,
+      data: {
+        nameFr: data.nameFr,
+        nameEn: data.nameEn,
+        code: data.code,
+        category: data.categoryKey,
+        color: data.color,
+        description: data.description,
+        levels: {
+          create: (data.levels || []).map((levelName: string) => ({
+            name: levelName,
+            duration: data.duration,
+            baseFee: data.baseFee
+          }))
+        }
+      },
+      include: { levels: true }
     });
   }
 
-  async update(id: number, data: Prisma.SubjectUpdateInput) {
+  async update(id: number, data: any) {
+    // Delete old levels and recreate
+    await this.prisma.level.deleteMany({ where: { subjectId: id } });
+
     return this.prisma.subject.update({
       where: { id },
-      data,
+      data: {
+        nameFr: data.nameFr,
+        nameEn: data.nameEn,
+        code: data.code,
+        category: data.categoryKey,
+        color: data.color,
+        description: data.description,
+        levels: {
+          create: (data.levels || []).map((levelName: string) => ({
+            name: levelName,
+            duration: data.duration,
+            baseFee: data.baseFee
+          }))
+        }
+      },
+      include: { levels: true }
     });
   }
 
   async remove(id: number) {
+    await this.prisma.level.deleteMany({ where: { subjectId: id } });
     return this.prisma.subject.delete({
       where: { id },
     });

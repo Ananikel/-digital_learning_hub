@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LearnersModule } from './learners/learners.module';
+import { TeachersModule } from './teachers/teachers.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -18,6 +19,7 @@ import { PaymentsModule } from './payments/payments.module';
     PrismaModule,
     AuthModule,
     LearnersModule,
+    TeachersModule,
     SubjectsModule,
     CohortsModule,
     CoursesModule,
