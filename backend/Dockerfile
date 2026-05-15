@@ -13,12 +13,16 @@ RUN npm install
 # Copie du reste du code
 COPY . .
 
+# Suppression du fichier config Prisma qui peut poser problème au build Docker Alpine
+# On utilise les variables d'environnement standards à la place.
+RUN rm -f prisma.config.ts
+
 # On fournit une DATABASE_URL fictive pour permettre la génération de Prisma au build
 # La vraie URL sera fournie par Coolify au RUNTIME.
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 # Génération de Prisma Client (nécessaire pour la compilation NestJS)
-RUN npx prisma generate
+RUN npx prisma generate --schema=prisma/schema.prisma
 
 # Build de l'application
 RUN npm run build
