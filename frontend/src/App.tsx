@@ -1355,7 +1355,7 @@ function LearnerModule({ t, learners, setLearners, selectedLearnerId, setSelecte
     });
   }
 
-  function saveLearnerForm() {
+  async function saveLearnerForm() {
     if (!canRolePerform(currentUser, "edit", "learners")) return;
     const safeName = learnerDraft.name.trim() || `${t("demoLearnerName")} ${learners.length + 1}`;
     const normalizedLearner = {
@@ -1367,18 +1367,21 @@ function LearnerModule({ t, learners, setLearners, selectedLearnerId, setSelecte
       balance: Number(learnerDraft.balance) || 0
     };
 
-    if (editingLearnerId) {
-      setLearners((previous) => previous.map((item) => item.id === editingLearnerId ? { ...item, ...normalizedLearner } : item));
-      setSelectedLearnerId(editingLearnerId);
-    } else {
-      const newLearner = {
-        id: `STU-${String(learners.length + 1).padStart(3, "0")}`,
-        ...normalizedLearner
-      };
-      setLearners((previous) => [newLearner, ...previous]);
-      setSelectedLearnerId(newLearner.id);
+    try {
+      if (editingLearnerId) {
+        const updated = await api.learners.update(editingLearnerId, normalizedLearner);
+        setLearners((previous) => previous.map((item) => item.id === editingLearnerId ? updated : item));
+        setSelectedLearnerId(editingLearnerId);
+      } else {
+        const created = await api.learners.create(normalizedLearner);
+        setLearners((previous) => [created, ...previous]);
+        setSelectedLearnerId(created.id);
+      }
+      resetLearnerForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement de l'apprenant:", err);
+      // Fallback local pour la démo si l'API échoue (optionnel)
     }
-    resetLearnerForm();
   }
 
   const rows = useMemo(() => learners.filter((learner) => {
@@ -1633,7 +1636,7 @@ function SubjectModule({ t, language = "fr", subjects, setSubjects, selectedSubj
     return Object.values(usage).reduce((sum, value) => sum + value, 0);
   }
 
-  function saveSubjectForm() {
+  async function saveSubjectForm() {
     if (!canManageSubjects) return;
     const nameFr = subjectDraft.nameFr.trim() || `${t("subjects")} ${subjects.length + 1}`;
     const nameEn = subjectDraft.nameEn.trim() || nameFr;
@@ -1644,37 +1647,59 @@ function SubjectModule({ t, language = "fr", subjects, setSubjects, selectedSubj
       return;
     }
     const normalizedSubject = { subjectKey, nameFr, nameEn, code: subjectDraft.code.trim().toUpperCase() || subjectKey.slice(0, 3).toUpperCase(), categoryKey: subjectDraft.categoryKey, levels: subjectDraft.levelsText.split(",").map((item) => item.trim()).filter(Boolean), duration: subjectDraft.duration.trim() || "3 mois", weeklySessions: Math.max(1, Number(subjectDraft.weeklySessions) || 1), sessionDuration: subjectDraft.sessionDuration.trim() || "3h", baseFee: Math.max(0, Number(subjectDraft.baseFee) || 0), owner: subjectDraft.owner.trim() || "Admin", statusKey: subjectDraft.statusKey, color: subjectDraft.color || "cyan", description: subjectDraft.description.trim() || t("toDefine") };
-    if (editingSubjectId) {
-      setSubjects((previous) => previous.map((item) => item.id === editingSubjectId ? { ...item, ...normalizedSubject } : item));
-      setSelectedSubjectId(editingSubjectId);
-    } else {
-      const newSubject = { id: `SUB-${String(subjects.length + 1).padStart(3, "0")}`, ...normalizedSubject };
-      setSubjects((previous) => [newSubject, ...previous]);
-      setSelectedSubjectId(newSubject.id);
+    
+    try {
+      if (editingSubjectId) {
+        const updated = await api.subjects.update(editingSubjectId, normalizedSubject);
+        setSubjects((previous) => previous.map((item) => item.id === editingSubjectId ? updated : item));
+        setSelectedSubjectId(editingSubjectId);
+      } else {
+        const created = await api.subjects.create(normalizedSubject);
+        setSubjects((previous) => [created, ...previous]);
+        setSelectedSubjectId(created.id);
+      }
+      resetSubjectForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement de la matière:", err);
+      setFeedback("Erreur lors de la sauvegarde.");
     }
-    resetSubjectForm();
   }
 
-  function archiveSubject(subject) {
+  async function archiveSubject(subject) {
     if (!canManageSubjects || !subject) return;
-    setSubjects((previous) => previous.map((item) => item.id === subject.id ? { ...item, statusKey: "subjectStatusArchived" } : item));
-    setFeedback(t("archiveSubject"));
+    try {
+      const updated = await api.subjects.update(subject.id, { statusKey: "subjectStatusArchived" });
+      setSubjects((previous) => previous.map((item) => item.id === subject.id ? updated : item));
+      setFeedback(t("archiveSubject"));
+    } catch (err) {
+      console.error("Erreur archive:", err);
+    }
   }
 
-  function activateSubject(subject) {
+  async function activateSubject(subject) {
     if (!canManageSubjects || !subject) return;
-    setSubjects((previous) => previous.map((item) => item.id === subject.id ? { ...item, statusKey: "subjectStatusActive" } : item));
-    setFeedback(t("activateSubject"));
+    try {
+      const updated = await api.subjects.update(subject.id, { statusKey: "subjectStatusActive" });
+      setSubjects((previous) => previous.map((item) => item.id === subject.id ? updated : item));
+      setFeedback(t("activateSubject"));
+    } catch (err) {
+      console.error("Erreur activation:", err);
+    }
   }
 
-  function deleteSubject(subject) {
+  async function deleteSubject(subject) {
     if (!canHardDelete || !subject) return;
     if (totalUsage(subject.subjectKey) > 0) {
       setFeedback(t("subjectUsedWarning"));
       return;
     }
-    setSubjects((previous) => previous.filter((item) => item.id !== subject.id));
-    setSelectedSubjectId(subjects.find((item) => item.id !== subject.id)?.id || "");
+    try {
+      await api.subjects.remove(subject.id);
+      setSubjects((previous) => previous.filter((item) => item.id !== subject.id));
+      setSelectedSubjectId(subjects.find((item) => item.id !== subject.id)?.id || "");
+    } catch (err) {
+      console.error("Erreur suppression:", err);
+    }
   }
 
   const rows = useMemo(() => subjects.filter((subject) => {
@@ -1779,7 +1804,7 @@ function CohortModule({ t, cohorts, setCohorts, selectedCohortId, setSelectedCoh
     return "from-cyan-400 to-sky-600";
   }
 
-  function saveCohortForm() {
+  async function saveCohortForm() {
     if (!canManageCohorts) return;
     const normalizedCohort = {
       ...cohortDraft,
@@ -1789,18 +1814,20 @@ function CohortModule({ t, cohorts, setCohorts, selectedCohortId, setSelectedCoh
       gradient: cohortGradient(cohortDraft.subjectKey)
     };
 
-    if (editingCohortId) {
-      setCohorts((previous) => previous.map((item) => item.id === editingCohortId ? { ...item, ...normalizedCohort } : item));
-      setSelectedCohortId(editingCohortId);
-    } else {
-      const newCohort = {
-        id: `c${cohorts.length + 1}`,
-        ...normalizedCohort
-      };
-      setCohorts((previous) => [newCohort, ...previous]);
-      setSelectedCohortId(newCohort.id);
+    try {
+      if (editingCohortId) {
+        const updated = await api.cohorts.update(editingCohortId, normalizedCohort);
+        setCohorts((previous) => previous.map((item) => item.id === editingCohortId ? updated : item));
+        setSelectedCohortId(editingCohortId);
+      } else {
+        const created = await api.cohorts.create(normalizedCohort);
+        setCohorts((previous) => [created, ...previous]);
+        setSelectedCohortId(created.id);
+      }
+      resetCohortForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement de la cohorte:", err);
     }
-    resetCohortForm();
   }
 
   const rows = useMemo(() => cohorts.filter((cohort) => {
@@ -2308,7 +2335,7 @@ function CourseModule({ t, language, courses, setCourses, selectedCourseId, setS
     });
   }
 
-  function saveCourseForm() {
+  async function saveCourseForm() {
     if (!canManageCourses) return;
     const normalizedCourse = {
       ...courseDraft,
@@ -2321,18 +2348,20 @@ function CourseModule({ t, language, courses, setCourses, selectedCourseId, setS
       objective: courseDraft.objective.trim() || t("toDefine")
     };
 
-    if (editingCourseId) {
-      setCourses((previous) => previous.map((item) => item.id === editingCourseId ? { ...item, ...normalizedCourse } : item));
-      setSelectedCourseId(editingCourseId);
-    } else {
-      const newCourse = {
-        id: `CRS-${String(courses.length + 1).padStart(3, "0")}`,
-        ...normalizedCourse
-      };
-      setCourses((previous) => [newCourse, ...previous]);
-      setSelectedCourseId(newCourse.id);
+    try {
+      if (editingCourseId) {
+        const updated = await api.courses.update(editingCourseId, normalizedCourse);
+        setCourses((previous) => previous.map((item) => item.id === editingCourseId ? updated : item));
+        setSelectedCourseId(editingCourseId);
+      } else {
+        const created = await api.courses.create(normalizedCourse);
+        setCourses((previous) => [created, ...previous]);
+        setSelectedCourseId(created.id);
+      }
+      resetCourseForm();
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement du cours:", err);
     }
-    resetCourseForm();
   }
 
   const rows = useMemo(() => courses.filter((course) => {
@@ -5303,12 +5332,30 @@ export default function App() {
     if (currentUser) {
       const fetchData = async () => {
         try {
-          const realLearners = await api.learners.getAll();
+          const [
+            realLearners,
+            realSubjects,
+            realCohorts,
+            realTeachers,
+            realCourses,
+            realPayments
+          ] = await Promise.all([
+            api.learners.getAll().catch(() => INITIAL_LEARNERS),
+            api.subjects.getAll().catch(() => INITIAL_SUBJECTS),
+            api.cohorts.getAll().catch(() => INITIAL_COHORTS),
+            api.teachers.getAll().catch(() => INITIAL_TEACHERS),
+            api.courses.getAll().catch(() => INITIAL_COURSES),
+            api.payments.getAll().catch(() => INITIAL_PAYMENTS)
+          ]);
+
           setLearners(realLearners);
+          setSubjectsData(realSubjects);
+          setCohortsData(realCohorts);
+          setTeachersData(realTeachers);
+          setCoursesData(realCourses);
+          setPaymentsData(realPayments);
         } catch (err) {
-          console.error("Erreur lors du chargement des apprenants:", err);
-          // Optionnel: Garder les données de démo en cas d'erreur
-          setLearners(INITIAL_LEARNERS);
+          console.error("Erreur lors du chargement des données:", err);
         }
       };
       fetchData();
@@ -5426,23 +5473,44 @@ export default function App() {
   const canEditActive = Boolean(activeSelection) && canRolePerform(currentUser, "edit", activeTab);
   const canDeleteActive = Boolean(activeSelection) && activeTab !== "subjects" && canRolePerform(currentUser, "delete", activeTab);
 
-  function updateActiveSelection(changes) {
+  async function updateActiveSelection(changes) {
     const id = activeSelection?.id;
     if (!id || !canEditActive) return;
-    const updateById = (items) => items.map((item) => item.id === id ? { ...item, ...changes } : item);
-    if (activeTab === "subjects") setSubjectsData(updateById);
-    if (activeTab === "learners") setLearners(updateById);
-    if (activeTab === "cohorts") setCohortsData(updateById);
-    if (activeTab === "teachers") setTeachersData(updateById);
-    if (activeTab === "courses") setCoursesData(updateById);
-    if (activeTab === "attendance") setAttendanceData(updateById);
-    if (activeTab === "exams") setAssessmentsData(updateById);
-    if (activeTab === "library") setResourcesData(updateById);
-    if (activeTab === "payments") setPaymentsData(updateById);
-    if (activeTab === "reports") setReportsData(updateById);
-    if (activeTab === "ai") setAiRequestsData(updateById);
-    if (activeTab === "settings") setSettingsData(updateById);
-    if (["backup", "restore", "reset", "audit"].includes(activeTab)) setMaintenanceData(updateById);
+    
+    try {
+      let updated;
+      if (activeTab === "subjects") {
+        updated = await api.subjects.update(id, changes);
+        setSubjectsData((items) => items.map((item) => item.id === id ? updated : item));
+      } else if (activeTab === "learners") {
+        updated = await api.learners.update(id, changes);
+        setLearners((items) => items.map((item) => item.id === id ? updated : item));
+      } else if (activeTab === "cohorts") {
+        updated = await api.cohorts.update(id, changes);
+        setCohortsData((items) => items.map((item) => item.id === id ? updated : item));
+      } else if (activeTab === "teachers") {
+        // updated = await api.teachers.update(id, changes);
+        setTeachersData((items) => items.map((item) => item.id === id ? { ...item, ...changes } : item));
+      } else if (activeTab === "courses") {
+        updated = await api.courses.update(id, changes);
+        setCoursesData((items) => items.map((item) => item.id === id ? updated : item));
+      } else if (activeTab === "payments") {
+        updated = await api.payments.update(id, changes);
+        setPaymentsData((items) => items.map((item) => item.id === id ? updated : item));
+      } else {
+        // Fallback for modules not yet fully connected to API
+        const updateById = (items) => items.map((item) => item.id === id ? { ...item, ...changes } : item);
+        if (activeTab === "attendance") setAttendanceData(updateById);
+        if (activeTab === "exams") setAssessmentsData(updateById);
+        if (activeTab === "library") setResourcesData(updateById);
+        if (activeTab === "reports") setReportsData(updateById);
+        if (activeTab === "ai") setAiRequestsData(updateById);
+        if (activeTab === "settings") setSettingsData(updateById);
+        if (["backup", "restore", "reset", "audit"].includes(activeTab)) setMaintenanceData(updateById);
+      }
+    } catch (err) {
+      console.error(`Erreur lors de la mise à jour (${activeTab}):`, err);
+    }
   }
 
   function deleteActiveSelection() {
