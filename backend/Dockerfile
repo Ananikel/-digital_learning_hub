@@ -1,48 +1,47 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# On définit la DATABASE_URL fictive pour la phase de build uniquement
-# Cela permet à Prisma de valider le schéma et de générer le client.
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-
-# Installation des dépendances
+# On installe les dépendances en premier pour optimiser le cache Docker
 COPY package*.json ./
 RUN npm install
 
-# Copie du dossier prisma pour la génération du client
+# On copie le dossier prisma
 COPY prisma ./prisma/
 
-# Génération de Prisma Client
-# On utilise --schema pour être explicite et on s'assure que DATABASE_URL est présente
+# On définit la DATABASE_URL fictive pour la phase de build (Validation Prisma)
+# Note : Cette valeur est écrasée par Coolify au moment du RUNTIME.
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/dummy"
+
+# Génération du client Prisma (Indispensable pour le build NestJS)
 RUN npx prisma generate --schema=prisma/schema.prisma
 
 # Copie du reste du code source
 COPY . .
 
-# On s'assure qu'aucun fichier de config additionnel ne perturbe le build Alpine
+# Suppression du fichier config Prisma pour éviter les conflits au build
 RUN rm -f prisma.config.ts
 
-# Build de l'application NestJS
+# Compilation de l'application NestJS
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Récupération des fichiers compilés et des dépendances
+# On ne récupère que le nécessaire pour l'exécution
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/start.sh ./start.sh
 
-# Permission pour le script de démarrage
+# On s'assure que le script de démarrage est prêt
 RUN chmod +x ./start.sh
 
 EXPOSE 3000
 
-# Le runtime utilisera la vraie DATABASE_URL fournie par Coolify
+# Coolify injectera la vraie DATABASE_URL ici
 CMD ["./start.sh"]
