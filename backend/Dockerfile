@@ -3,28 +3,28 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# On copie les fichiers de configuration
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Installation des dépendances
-RUN npm install
-
-# Copie du reste du code
-COPY . .
-
-# Suppression du fichier config Prisma qui peut poser problème au build Docker Alpine
-# On utilise les variables d'environnement standards à la place.
-RUN rm -f prisma.config.ts
-
-# On fournit une DATABASE_URL fictive pour permettre la génération de Prisma au build
-# La vraie URL sera fournie par Coolify au RUNTIME.
+# On définit la DATABASE_URL fictive pour la phase de build uniquement
+# Cela permet à Prisma de valider le schéma et de générer le client.
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
-# Génération de Prisma Client (nécessaire pour la compilation NestJS)
+# Installation des dépendances
+COPY package*.json ./
+RUN npm install
+
+# Copie du dossier prisma pour la génération du client
+COPY prisma ./prisma/
+
+# Génération de Prisma Client
+# On utilise --schema pour être explicite et on s'assure que DATABASE_URL est présente
 RUN npx prisma generate --schema=prisma/schema.prisma
 
-# Build de l'application
+# Copie du reste du code source
+COPY . .
+
+# On s'assure qu'aucun fichier de config additionnel ne perturbe le build Alpine
+RUN rm -f prisma.config.ts
+
+# Build de l'application NestJS
 RUN npm run build
 
 # Production stage
@@ -32,18 +32,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# On copie les fichiers nécessaires depuis le builder
+# Récupération des fichiers compilés et des dépendances
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/start.sh ./start.sh
 
-# On s'assure que le script est exécutable
+# Permission pour le script de démarrage
 RUN chmod +x ./start.sh
 
 EXPOSE 3000
 
-# On lance le script de démarrage qui gèrera Prisma et l'App au RUNTIME
+# Le runtime utilisera la vraie DATABASE_URL fournie par Coolify
 CMD ["./start.sh"]
