@@ -903,7 +903,7 @@ function MetricCard({ title, value, hint, gradient, icon }) {
 
 function GlassCard({ children, className = "" }) {
   return (
-    <div className={cn("rounded-3xl border border-white/10 bg-[#0b1025]/70 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl transition duration-300 hover:border-violet-400/30 hover:bg-[#111735]/80", className)}>
+    <div className={cn("w-full max-w-full overflow-hidden rounded-3xl border border-white/10 bg-[#0b1025]/70 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl transition duration-300 hover:border-violet-400/30 hover:bg-[#111735]/80", className)}>
       {children}
     </div>
   );
@@ -1136,7 +1136,7 @@ function LoginScreen({ t, language, setLanguage, theme, setTheme, onLogin, preEn
               className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-violet-500/50 transition-colors" 
             />
 
-            <div className="grid grid-cols-2 gap-3 mt-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
               <div className="space-y-1">
                 <label className="block text-xs text-slate-400">{t("language")}</label>
                 <select value={language} onChange={(event) => setLanguage(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-[#0b1025] px-4 py-3 text-sm text-white outline-none">
@@ -1195,7 +1195,7 @@ function UserMenu({ t, user, onLogout }) {
 
 function ManagementDock({ t, activeLabel, selectedTitle, selectedDetails, selectedRecord, onSave, onDelete, canEdit, canDelete }) {
   return (
-    <div className="mb-5 rounded-3xl border border-white/10 bg-[#0b1025]/75 p-4 shadow-xl shadow-black/20 backdrop-blur-xl">
+    <div className="mb-5 overflow-hidden rounded-3xl border border-white/10 bg-[#0b1025]/75 p-4 shadow-xl shadow-black/20 backdrop-blur-xl">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{activeLabel}</p>
@@ -1573,7 +1573,7 @@ function LearnerModule({ t, learners, setLearners, selectedLearnerId, setSelecte
               <p className="mt-1 text-sm text-slate-400">{selectedLearner.phone}</p>
               <div className="mt-4 flex gap-2"><span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs text-cyan-200">{t(selectedLearner.subjectKey)}</span><span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{selectedLearner.level}</span></div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("learnerProgress")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedLearner.progress}%</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("learnerAttendance")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedLearner.attendance}%</p></div>
               {showFinance ? <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("paid")}</p><p className="mt-2 text-xl font-semibold text-cyan-300">{formatMoney(selectedLearner.paid)}</p></div> : null}
@@ -1721,7 +1721,7 @@ function SubjectModule({ t, language = "fr", subjects, setSubjects, selectedSubj
       </GlassCard>
       <GlassCard>
         <SectionHeader title={t("subjectProfile")} subtitle={selectedSubject ? t("selectedSubject") : t("noSubjectSelected")} />
-        {selectedSubject ? (<div className="space-y-4"><div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5"><div className={cn("h-2 bg-gradient-to-r", colorGradient(selectedSubject.color))} /><div className="p-5"><p className="text-2xl font-semibold text-white">{subjectLabel(selectedSubject)}</p><p className="mt-1 text-sm text-slate-400">{selectedSubject.code} · {selectedSubject.subjectKey}</p><div className="mt-4 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs ${statusTone(selectedSubject.statusKey)}`}>{t(selectedSubject.statusKey)}</span><span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{t(selectedSubject.categoryKey)}</span></div></div></div><div className="grid grid-cols-2 gap-3"><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectLevels")}</p><p className="mt-2 text-sm font-semibold text-white">{(selectedSubject.levels || []).join(", ")}</p></div><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectBaseFee")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{formatMoney(selectedSubject.baseFee)}</p></div><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectDuration")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedSubject.duration}</p></div><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectWeeklySessions")}</p><p className="mt-2 text-sm font-semibold text-orange-300">{selectedSubject.weeklySessions} · {selectedSubject.sessionDuration}</p></div><div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectUsage")}</p><div className="mt-3 grid grid-cols-2 gap-2 text-xs"><span>{t("linkedLearners")}: {selectedUsage.learners}</span><span>{t("linkedCohorts")}: {selectedUsage.cohorts}</span><span>{t("linkedCourses")}: {selectedUsage.courses}</span><span>{t("linkedResources")}: {selectedUsage.resources}</span><span>{t("linkedPayments")}: {selectedUsage.payments}</span></div></div><div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("resourceDescription")}</p><p className="mt-2 text-sm leading-6 text-white">{selectedSubject.description}</p></div></div><div className="grid gap-2"><button disabled={!canManageSubjects} onClick={() => selectedSubject.statusKey === "subjectStatusArchived" ? activateSubject(selectedSubject) : archiveSubject(selectedSubject)} className={cn("w-full rounded-2xl px-5 py-3 text-sm font-semibold transition", canManageSubjects ? "bg-orange-500/20 text-orange-100 hover:-translate-y-1 hover:bg-orange-500/30" : "bg-white/5 text-slate-500")}>{selectedSubject.statusKey === "subjectStatusArchived" ? t("activateSubject") : t("archiveSubject")}</button><button disabled={!canHardDelete || totalUsage(selectedSubject.subjectKey) > 0} onClick={() => deleteSubject(selectedSubject)} className={cn("w-full rounded-2xl px-5 py-3 text-sm font-semibold transition", canHardDelete && totalUsage(selectedSubject.subjectKey) === 0 ? "bg-rose-500/20 text-rose-100 hover:-translate-y-1 hover:bg-rose-500/30" : "bg-white/5 text-slate-500")}>{t("deleteSubjectSafe")}</button>{totalUsage(selectedSubject.subjectKey) > 0 ? <p className="rounded-2xl bg-rose-500/10 px-4 py-3 text-xs leading-5 text-rose-100">{t("subjectUsedWarning")}</p> : null}</div></div>) : null}
+        {selectedSubject ? (<div className="space-y-4"><div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5"><div className={cn("h-2 bg-gradient-to-r", colorGradient(selectedSubject.color))} /><div className="p-5"><p className="text-2xl font-semibold text-white">{subjectLabel(selectedSubject)}</p><p className="mt-1 text-sm text-slate-400">{selectedSubject.code} · {selectedSubject.subjectKey}</p><div className="mt-4 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs ${statusTone(selectedSubject.statusKey)}`}>{t(selectedSubject.statusKey)}</span><span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{t(selectedSubject.categoryKey)}</span></div></div></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectLevels")}</p><p className="mt-2 text-sm font-semibold text-white">{(selectedSubject.levels || []).join(", ")}</p></div><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectBaseFee")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{formatMoney(selectedSubject.baseFee)}</p></div><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectDuration")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedSubject.duration}</p></div><div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectWeeklySessions")}</p><p className="mt-2 text-sm font-semibold text-orange-300">{selectedSubject.weeklySessions} · {selectedSubject.sessionDuration}</p></div><div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("subjectUsage")}</p><div className="mt-3 grid grid-cols-2 gap-2 text-xs"><span>{t("linkedLearners")}: {selectedUsage.learners}</span><span>{t("linkedCohorts")}: {selectedUsage.cohorts}</span><span>{t("linkedCourses")}: {selectedUsage.courses}</span><span>{t("linkedResources")}: {selectedUsage.resources}</span><span>{t("linkedPayments")}: {selectedUsage.payments}</span></div></div><div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("resourceDescription")}</p><p className="mt-2 text-sm leading-6 text-white">{selectedSubject.description}</p></div></div><div className="grid gap-2"><button disabled={!canManageSubjects} onClick={() => selectedSubject.statusKey === "subjectStatusArchived" ? activateSubject(selectedSubject) : archiveSubject(selectedSubject)} className={cn("w-full rounded-2xl px-5 py-3 text-sm font-semibold transition", canManageSubjects ? "bg-orange-500/20 text-orange-100 hover:-translate-y-1 hover:bg-orange-500/30" : "bg-white/5 text-slate-500")}>{selectedSubject.statusKey === "subjectStatusArchived" ? t("activateSubject") : t("archiveSubject")}</button><button disabled={!canHardDelete || totalUsage(selectedSubject.subjectKey) > 0} onClick={() => deleteSubject(selectedSubject)} className={cn("w-full rounded-2xl px-5 py-3 text-sm font-semibold transition", canHardDelete && totalUsage(selectedSubject.subjectKey) === 0 ? "bg-rose-500/20 text-rose-100 hover:-translate-y-1 hover:bg-rose-500/30" : "bg-white/5 text-slate-500")}>{t("deleteSubjectSafe")}</button>{totalUsage(selectedSubject.subjectKey) > 0 ? <p className="rounded-2xl bg-rose-500/10 px-4 py-3 text-xs leading-5 text-rose-100">{t("subjectUsedWarning")}</p> : null}</div></div>) : null}
       </GlassCard>
     </div>
   );
@@ -1900,7 +1900,7 @@ function CohortModule({ t, cohorts, setCohorts, selectedCohortId, setSelectedCoh
                   <div><h3 className="font-semibold text-white">{t(cohort.nameKey)}</h3><p className="mt-1 text-xs text-slate-400">{t(cohort.subjectKey)} · {cohort.level}</p></div>
                   <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-300">{t(cohort.statusKey)}</span>
                 </div>
-                <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-300">
+                <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-300">
                   <p>{t("cohortTeacher")}: {cohort.teacher}</p>
                   <p>{t("cohortSchedule")}: {cohort.schedule}</p>
                   <p>{t("enrolled")}: {cohort.students}</p>
@@ -1925,7 +1925,7 @@ function CohortModule({ t, cohorts, setCohorts, selectedCohortId, setSelectedCoh
                 <div className="mt-4 flex gap-2"><span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs text-cyan-200">{t(selectedCohort.statusKey)}</span><span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{selectedCohort.students}/{selectedCohort.capacity}</span></div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("cohortProgress")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedCohort.progress}%</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("capacityLabel")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedCohort.capacity}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("cohortTeacher")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{selectedCohort.teacher}</p></div>
@@ -2218,7 +2218,7 @@ function TeacherModule({ t, teachers, setTeachers, selectedTeacherId, setSelecte
               <p className="mt-1 text-sm text-slate-400">{selectedTeacher.email || selectedTeacher.phone}</p>
               <div className="mt-4 flex flex-wrap gap-2"><span className="rounded-full bg-cyan-400/15 px-3 py-1 text-xs text-cyan-200">{t(selectedTeacher.departmentKey)}</span><span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{t(selectedTeacher.teacherRoleKey)}</span><span className={`rounded-full px-3 py-1 text-xs ${accountTone(selectedTeacher.accountStatusKey)}`}>{t(selectedTeacher.accountStatusKey)}</span></div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("staffPosition")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedTeacher.position}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("staffSubjectOptional")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{t(selectedTeacher.subjectKey)}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("workload")}</p><p className="mt-2 text-2xl font-semibold text-cyan-300">{selectedTeacher.workload}h</p></div>
@@ -2443,7 +2443,7 @@ function CourseModule({ t, language, courses, setCourses, selectedCourseId, setS
                 </div>
                 <span className="rounded-full bg-violet-500/20 px-3 py-1 text-xs text-violet-200">{t(course.statusKey)}</span>
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-300">
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-300">
                 <p>{t("teacher")}: {course.teacher}</p>
                 <p>{t("courseType")}: {t(course.typeKey)}</p>
                 <p>{t("courseWeek")}: {course.week}</p>
@@ -2469,7 +2469,7 @@ function CourseModule({ t, language, courses, setCourses, selectedCourseId, setS
                 <span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{t(selectedCourse.statusKey)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("courseWeek")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedCourse.week}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("courseSession")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedCourse.session}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("courseDuration")}</p><p className="mt-2 text-xl font-semibold text-cyan-300">{selectedCourse.duration}</p></div>
@@ -2695,7 +2695,7 @@ function AttendanceModule({ t, learners = [], courses = [], cohorts = [], attend
               <div className="grid gap-3">
                 <label className="block"><span className="mb-2 block text-xs text-slate-400">{t("cohort")}</span><select value={callDraft.cohortNameKey} onChange={(event) => updateCallDraft("cohortNameKey", event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#0b1025] px-3 py-2 text-sm text-white outline-none">{cohorts.map((cohort) => <option key={cohort.id} value={cohort.nameKey}>{t(cohort.nameKey)} · {cohort.level}</option>)}</select></label>
                 <label className="block"><span className="mb-2 block text-xs text-slate-400">{t("courses")}</span><select value={callDraft.courseTitle} onChange={(event) => updateCallDraft("courseTitle", event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#0b1025] px-3 py-2 text-sm text-white outline-none">{courses.map((course) => <option key={course.id} value={course.title}>{course.title}</option>)}</select></label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label className="block"><span className="mb-2 block text-xs text-slate-400">{t("courseWeek")}</span><input type="number" value={callDraft.week} onChange={(event) => updateCallDraft("week", event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#0b1025] px-3 py-2 text-sm text-white outline-none" /></label>
                   <label className="block"><span className="mb-2 block text-xs text-slate-400">{t("courseSession")}</span><input type="number" value={callDraft.session} onChange={(event) => updateCallDraft("session", event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#0b1025] px-3 py-2 text-sm text-white outline-none" /></label>
                 </div>
@@ -2820,7 +2820,7 @@ function AttendanceModule({ t, learners = [], courses = [], cohorts = [], attend
               <p className="mt-1 text-sm text-slate-400">{t(selectedAttendance.subjectKey)} · {t(selectedAttendance.cohortNameKey)}</p>
               <div className="mt-4 flex gap-2"><span className={`rounded-full px-3 py-1 text-xs ${statusTone(selectedAttendance.statusKey)}`}>{t(selectedAttendance.statusKey)}</span><span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{selectedAttendance.date}</span></div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("courseWeek")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedAttendance.week}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("courseSession")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedAttendance.session}</p></div>
               <div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("courses")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{selectedAttendance.courseTitle}</p></div>
@@ -3066,7 +3066,7 @@ function AssessmentModule({ t, learners = [], courses = [], assessments, setAsse
                 <span className={`rounded-full px-3 py-1 text-xs ${decisionTone(selectedAssessment.decisionKey)}`}>{t(selectedAssessment.decisionKey)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("assessmentScore")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedAssessment.score}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("maxScore")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedAssessment.maxScore}</p></div>
               <div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("courses")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{selectedAssessment.courseTitle}</p></div>
@@ -3323,7 +3323,7 @@ function LibraryModule({ t, courses = [], resources, setResources, selectedResou
                 <span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{t(selectedResource.visibilityKey)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("resourceSize")}</p><p className="mt-2 text-xl font-semibold text-white">{selectedResource.size}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("resourceDownloads")}</p><p className="mt-2 text-2xl font-semibold text-cyan-300">{selectedResource.downloads}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("resourceOwner")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedResource.owner}</p></div>
@@ -3679,7 +3679,7 @@ function PaymentModule({ t, payments, setPayments, selectedPaymentId, setSelecte
                 <span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{t(selectedPayment.methodKey)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("totalFees")}</p><p className="mt-2 text-xl font-semibold text-white">{formatMoney(selectedPayment.totalFees)}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("amountPaid")}</p><p className="mt-2 text-xl font-semibold text-cyan-300">{formatMoney(selectedPayment.amountPaid)}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("amountDue")}</p><p className="mt-2 text-xl font-semibold text-orange-300">{formatMoney(selectedPayment.amountDue)}</p></div>
@@ -4128,7 +4128,7 @@ function ReportModule({ t, reports, setReports, selectedReportId, setSelectedRep
                 <span className="rounded-full bg-violet-400/15 px-3 py-1 text-xs text-violet-200">{t(selectedReport.audienceKey)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("learners")}</p><p className="mt-2 text-2xl font-semibold text-white">{selectedReport.metrics.learners}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("attendanceRate")}</p><p className="mt-2 text-2xl font-semibold text-emerald-300">{selectedReport.metrics.attendance}%</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("successRate")}</p><p className="mt-2 text-2xl font-semibold text-orange-300">{selectedReport.metrics.success}%</p></div>
@@ -4562,7 +4562,7 @@ function AiAssistantModule({ t, aiRequests, setAiRequests, selectedAiRequestId, 
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("aiPromptText")}</p><p className="mt-2 text-sm leading-6 text-white">{selectedAiRequest.prompt}</p></div>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("aiOutputPreview")}</p><p className="mt-2 text-sm leading-6 text-cyan-100">{selectedAiRequest.output}</p></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("aiValidation")}</p><p className="mt-2 text-sm font-semibold text-emerald-300">{t(selectedAiRequest.validationKey)}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("resourceOwner")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedAiRequest.requester}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("aiValidator")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{selectedAiRequest.validator || "—"}</p></div>
@@ -4931,7 +4931,7 @@ function SettingsModule({ t, language = "fr", settings, setSettings, selectedSet
                 <span className={`rounded-full px-3 py-1 text-xs ${categoryTone(selectedSetting.categoryKey)}`}>{t(selectedSetting.categoryKey)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("settingValue")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{selectedSetting.value}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("settingOwner")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedSetting.owner}</p></div>
               <div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("settingDescription")}</p><p className="mt-2 text-sm leading-6 text-white">{selectedSetting.description}</p></div>
@@ -5033,7 +5033,7 @@ function StudentReadOnlyModule({ t, moduleId, currentUser, learners = [], course
               <p className="text-2xl font-semibold text-white">{itemTitle(selected)}</p>
               <p className="mt-1 text-sm text-slate-400">{itemMeta(selected)}</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {detailCards(selected).map(([label, value]) => (
                 <div key={label} className="rounded-3xl border border-white/10 bg-white/5 p-4">
                   <p className="text-xs text-slate-400">{label}</p>
@@ -5180,7 +5180,7 @@ function MaintenanceModule({ t, moduleId, icon, operations, setOperations, selec
                 <span className={`rounded-full px-3 py-1 text-xs ${severityTone(selectedOperation.severityKey)}`}>{t(selectedOperation.severityKey)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("targetModule")}</p><p className="mt-2 text-sm font-semibold text-cyan-300">{t(selectedOperation.targetKey)}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("operator")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedOperation.owner}</p></div>
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4"><p className="text-xs text-slate-400">{t("startedAt")}</p><p className="mt-2 text-sm font-semibold text-white">{selectedOperation.startedAt}</p></div>
@@ -5475,7 +5475,7 @@ export default function App() {
   }
 
   return (
-    <div className={cn("min-h-screen overflow-x-hidden bg-[#070b1d] text-white", theme === "light" ? "theme-light" : "theme-navy")}>
+    <div className={cn("min-h-screen overflow-x-hidden bg-[#070b1d] text-white lg:flex lg:p-4 lg:gap-4", theme === "light" ? "theme-light" : "theme-navy")}>
       <ThemeStyleBridge theme={theme} />
       <div className="pointer-events-none fixed -left-48 -top-48 h-[34rem] w-[34rem] rounded-full bg-cyan-500/25 blur-3xl" />
       <div className="pointer-events-none fixed right-0 top-0 h-[38rem] w-[38rem] rounded-full bg-violet-600/25 blur-3xl" />
@@ -5488,7 +5488,7 @@ export default function App() {
 
       {/* Sidebar Mobile & Desktop */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-[70] w-72 transform border-r border-white/10 bg-[#0b1025]/95 p-5 transition-transform duration-300 ease-in-out lg:relative lg:z-auto lg:block lg:w-72 lg:translate-x-0 lg:rounded-3xl lg:border lg:bg-[#0b1025]/80 lg:shadow-2xl lg:shadow-black/30 lg:backdrop-blur-2xl",
+        "fixed inset-y-0 left-0 z-[70] w-72 shrink-0 transform border-r border-white/10 bg-[#0b1025]/95 p-5 transition-transform duration-300 ease-in-out lg:relative lg:z-auto lg:block lg:w-72 lg:translate-x-0 lg:rounded-3xl lg:border lg:bg-[#0b1025]/80 lg:shadow-2xl lg:shadow-black/30 lg:backdrop-blur-2xl lg:h-[calc(100vh-2rem)] lg:sticky lg:top-4",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="mb-8 flex items-center justify-between">
@@ -5506,7 +5506,7 @@ export default function App() {
           </button>
         </div>
 
-        <nav className="space-y-2 overflow-y-auto max-h-[calc(100vh-140px)] pr-2 scrollbar-hide">
+        <nav className="space-y-2 overflow-y-auto max-h-[calc(100vh-160px)] pr-2 scrollbar-hide">
           {navItems.map((item) => (
             <button key={item.id} onClick={() => setActiveTab(item.id)} className={cn("group relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition duration-300", activeTab === item.id ? "bg-violet-600 text-white shadow-lg shadow-violet-600/40" : "text-slate-400 hover:translate-x-1 hover:bg-white/10 hover:text-white")}>
               {activeTab === item.id ? <span className="absolute -left-5 h-7 w-1 rounded-full bg-violet-400 lg:block hidden" /> : null}
@@ -5517,9 +5517,7 @@ export default function App() {
         </nav>
       </aside>
 
-      <div className="relative mx-auto flex max-w-[1500px] flex-1 flex-col gap-4 p-3 sm:gap-5 sm:p-5 lg:flex-row">
-        {/* On retire l'aside original car il est fusionné ci-dessus */}
-        
+      <div className="relative mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 p-3 sm:gap-5 sm:p-0 lg:min-w-0">
         <main className="min-w-0 flex-1 pb-24 lg:pb-0">
           <header className="mb-4 flex flex-col gap-4 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
@@ -5724,7 +5722,7 @@ export default function App() {
 
                 {currentUser?.role !== "student" ? <GlassCard>
                   <SectionHeader title={t("quickActions")} />
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {[[t("createLearner"), ICONS.users], [t("createCohort"), ICONS.cohorts], [t("addCourse"), ICONS.courses], [t("createQuiz"), ICONS.exams], [t("sendReminder"), ICONS.bell], [t("generateAI"), ICONS.ai]].map(([label, icon]) => (
                       <button key={label} className="group rounded-3xl border border-white/10 bg-white/5 p-4 text-center transition duration-300 hover:-translate-y-1 hover:bg-violet-600 hover:shadow-lg hover:shadow-violet-600/30">
                         <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-xl transition group-hover:bg-white group-hover:text-slate-950">{icon}</div>
