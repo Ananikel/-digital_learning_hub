@@ -10,8 +10,6 @@ RUN npm install
 
 COPY prisma ./prisma/
 
-ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/lms?schema=public"
-
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
 COPY . .
