@@ -9,6 +9,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   constructor() {
     const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      console.warn('⚠️ DATABASE_URL is not set. Prisma might fail to connect.');
+    } else {
+      const dbHost = connectionString.split('@')[1]?.split('/')[0] || 'unknown';
+      console.log(`📡 Prisma attempting to connect to database at: ${dbHost}`);
+    }
+    
     const pool = new pg.Pool({ connectionString });
     const adapter = new PrismaPg(pool);
     super({ adapter });

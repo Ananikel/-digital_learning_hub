@@ -29,7 +29,7 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
-  const port = process.env.PORT ?? 3000;
+  const port = parseInt(process.env.PORT || '3000', 10);
   await app.listen(port);
   
   logger.log(`🚀 Application backend démarrée sur http://localhost:${port}`);

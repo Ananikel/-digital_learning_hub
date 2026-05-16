@@ -6,15 +6,6 @@ RUN apk add --no-cache libc6-compat openssl
 
 WORKDIR /app
 
-# Déclaration des ARGs pour éviter les warnings Coolify
-ARG JWT_SECRET
-ARG JWT_EXPIRES_IN
-ARG DATABASE_URL
-
-# On définit la DATABASE_URL fictive pour la phase de build (Validation Prisma)
-# Note : Cette valeur est écrasée par Coolify au moment du RUNTIME.
-ENV DATABASE_URL=${DATABASE_URL:-"postgresql://user:password@localhost:5432/dummy"}
-
 # Installation des dépendances Node
 COPY package*.json ./
 RUN npm install
@@ -23,8 +14,13 @@ RUN npm install
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
+# On définit une DATABASE_URL fictive UNIQUEMENT pour la phase de build.
+# Cela permet à 'prisma generate' de valider le schéma sans avoir besoin d'une base réelle.
+# Cette valeur sera ignorée au RUNTIME car Coolify injectera la vraie URL.
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/dummy?schema=public"
+
 # Génération du client Prisma
-RUN npx prisma generate --schema=prisma/schema.prisma
+RUN npx prisma generate
 
 # Copie du reste du code source et build
 COPY . .

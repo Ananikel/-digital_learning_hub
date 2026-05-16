@@ -18,31 +18,57 @@ let LearnersService = class LearnersService {
         this.prisma = prisma;
     }
     async findAll() {
-        return this.prisma.student.findMany({
+        const students = await this.prisma.student.findMany({
             include: {
-                user: true,
-                enrollments: true,
+                enrollments: {
+                    include: {
+                        cohort: {
+                            include: {
+                                subject: true
+                            }
+                        }
+                    }
+                }
             },
         });
+        return students.map(student => ({
+            id: student.id,
+            name: student.fullName,
+            phone: student.phone,
+            statusKey: student.status,
+            subjectKey: student.enrollments[0]?.cohort.subject.code.toLowerCase() || "german",
+            level: student.enrollments[0]?.cohort.levelId ? "A1" : "A1",
+            progress: 0,
+            attendance: 100,
+            paid: 0,
+            balance: 0
+        }));
     }
     async findOne(id) {
         return this.prisma.student.findUnique({
             where: { id },
-            include: {
-                user: true,
-                enrollments: true,
-            },
         });
     }
     async create(data) {
         return this.prisma.student.create({
-            data,
+            data: {
+                fullName: data.name || "Nouveau Apprenant",
+                phone: data.phone,
+                status: data.statusKey || "active",
+            },
         });
     }
     async update(id, data) {
+        const updateData = {};
+        if (data.name !== undefined)
+            updateData.fullName = data.name;
+        if (data.phone !== undefined)
+            updateData.phone = data.phone;
+        if (data.statusKey !== undefined)
+            updateData.status = data.statusKey;
         return this.prisma.student.update({
             where: { id },
-            data,
+            data: updateData,
         });
     }
     async remove(id) {

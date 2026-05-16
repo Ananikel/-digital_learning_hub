@@ -18,32 +18,84 @@ let SubjectsService = class SubjectsService {
         this.prisma = prisma;
     }
     async findAll() {
-        return this.prisma.subject.findMany({
+        const subjects = await this.prisma.subject.findMany({
             include: {
-                levels: true,
-            },
+                levels: true
+            }
         });
+        return subjects.map(s => ({
+            id: s.id,
+            subjectKey: s.code.toLowerCase(),
+            nameFr: s.nameFr,
+            nameEn: s.nameEn,
+            code: s.code,
+            categoryKey: s.category,
+            color: s.color || "cyan",
+            description: s.description || "",
+            levels: s.levels.map(l => l.name),
+            duration: s.levels[0]?.duration || "3 mois",
+            baseFee: s.levels[0]?.baseFee || 0,
+            statusKey: "subjectStatusActive"
+        }));
     }
     async findOne(id) {
         return this.prisma.subject.findUnique({
             where: { id },
-            include: {
-                levels: true,
-            },
+            include: { levels: true }
         });
     }
     async create(data) {
         return this.prisma.subject.create({
-            data,
+            data: {
+                nameFr: data.nameFr,
+                nameEn: data.nameEn,
+                code: data.code,
+                category: data.categoryKey,
+                color: data.color,
+                description: data.description,
+                levels: {
+                    create: (data.levels || []).map((levelName) => ({
+                        name: levelName,
+                        duration: data.duration,
+                        baseFee: data.baseFee
+                    }))
+                }
+            },
+            include: { levels: true }
         });
     }
     async update(id, data) {
+        const updateData = {};
+        if (data.nameFr !== undefined)
+            updateData.nameFr = data.nameFr;
+        if (data.nameEn !== undefined)
+            updateData.nameEn = data.nameEn;
+        if (data.code !== undefined)
+            updateData.code = data.code;
+        if (data.categoryKey !== undefined)
+            updateData.category = data.categoryKey;
+        if (data.color !== undefined)
+            updateData.color = data.color;
+        if (data.description !== undefined)
+            updateData.description = data.description;
+        if (data.levels !== undefined) {
+            await this.prisma.level.deleteMany({ where: { subjectId: id } });
+            updateData.levels = {
+                create: (data.levels || []).map((levelName) => ({
+                    name: levelName,
+                    duration: data.duration,
+                    baseFee: data.baseFee
+                }))
+            };
+        }
         return this.prisma.subject.update({
             where: { id },
-            data,
+            data: updateData,
+            include: { levels: true }
         });
     }
     async remove(id) {
+        await this.prisma.level.deleteMany({ where: { subjectId: id } });
         return this.prisma.subject.delete({
             where: { id },
         });

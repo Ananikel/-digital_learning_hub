@@ -22,6 +22,7 @@ let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
     catch(exception, host) {
         const { httpAdapter } = this.httpAdapterHost;
         const ctx = host.switchToHttp();
+        const request = ctx.getRequest();
         const httpStatus = exception instanceof common_1.HttpException
             ? exception.getStatus()
             : common_1.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -31,7 +32,7 @@ let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
         const errorMessage = typeof exceptionResponse === 'string'
             ? { message: exceptionResponse }
             : exceptionResponse;
-        this.logger.error(`HTTP Status: ${httpStatus} Error Message: ${JSON.stringify(errorMessage)}`, exception instanceof Error ? exception.stack : undefined);
+        this.logger.error(`URL: ${httpAdapter.getRequestUrl(request)} | Body: ${JSON.stringify(request.body)} | Status: ${httpStatus} | Error: ${JSON.stringify(errorMessage)}`, exception instanceof Error ? exception.stack : undefined);
         const responseBody = {
             statusCode: httpStatus,
             timestamp: new Date().toISOString(),

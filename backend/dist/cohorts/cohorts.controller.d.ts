@@ -3,17 +3,7 @@ import { Prisma } from '@prisma/client';
 export declare class CohortsController {
     private readonly cohortsService;
     constructor(cohortsService: CohortsService);
-    create(data: Prisma.CohortCreateInput): Prisma.Prisma__CohortClient<{
-        id: number;
-        status: string;
-        name: string;
-        subjectId: number;
-        schedule: string | null;
-        capacity: number;
-        levelId: number;
-        teacherId: number;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
-    findAll(): Prisma.PrismaPromise<({
+    create(data: Prisma.CohortCreateInput): Promise<{
         teacher: {
             id: number;
             userId: number;
@@ -34,21 +24,34 @@ export declare class CohortsController {
         level: {
             id: number;
             name: string;
+            subjectId: number;
             duration: string | null;
             baseFee: number;
-            subjectId: number;
         };
     } & {
         id: number;
         status: string;
         name: string;
         subjectId: number;
-        schedule: string | null;
-        capacity: number;
         levelId: number;
         teacherId: number;
-    })[]>;
-    findOne(id: string): Prisma.Prisma__CohortClient<({
+        schedule: string | null;
+        capacity: number;
+    }>;
+    findAll(): Promise<{
+        id: number;
+        nameKey: string;
+        subjectKey: string;
+        level: string;
+        students: number;
+        capacity: number;
+        teacher: string;
+        schedule: string | null;
+        progress: number;
+        statusKey: string;
+        gradient: string;
+    }[]>;
+    findOne(id: string): Promise<({
         teacher: {
             id: number;
             userId: number;
@@ -69,45 +72,63 @@ export declare class CohortsController {
         level: {
             id: number;
             name: string;
+            subjectId: number;
             duration: string | null;
             baseFee: number;
-            subjectId: number;
         };
-        enrollments: {
-            id: number;
-            enrollmentDate: Date;
-            status: string;
-            studentId: number;
-            cohortId: number;
-        }[];
     } & {
         id: number;
         status: string;
         name: string;
         subjectId: number;
-        schedule: string | null;
-        capacity: number;
         levelId: number;
         teacherId: number;
-    }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
-    update(id: string, data: Prisma.CohortUpdateInput): Prisma.Prisma__CohortClient<{
+        schedule: string | null;
+        capacity: number;
+    }) | null>;
+    update(id: string, data: Prisma.CohortUpdateInput): Promise<{
+        teacher: {
+            id: number;
+            userId: number;
+            fullName: string;
+            phone: string | null;
+            qualification: string | null;
+            availability: string | null;
+        };
+        subject: {
+            id: number;
+            nameFr: string;
+            nameEn: string;
+            code: string;
+            category: string;
+            color: string | null;
+            description: string | null;
+        };
+        level: {
+            id: number;
+            name: string;
+            subjectId: number;
+            duration: string | null;
+            baseFee: number;
+        };
+    } & {
         id: number;
         status: string;
         name: string;
         subjectId: number;
-        schedule: string | null;
-        capacity: number;
         levelId: number;
         teacherId: number;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
-    remove(id: string): Prisma.Prisma__CohortClient<{
+        schedule: string | null;
+        capacity: number;
+    }>;
+    remove(id: string): Promise<{
         id: number;
         status: string;
         name: string;
         subjectId: number;
-        schedule: string | null;
-        capacity: number;
         levelId: number;
         teacherId: number;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
+        schedule: string | null;
+        capacity: number;
+    }>;
 }

@@ -3,17 +3,26 @@ import { Prisma } from '@prisma/client';
 export declare class PaymentsController {
     private readonly paymentsService;
     constructor(paymentsService: PaymentsService);
-    create(data: Prisma.PaymentCreateInput): Prisma.Prisma__PaymentClient<{
+    create(data: Prisma.PaymentCreateInput): Promise<{
         id: number;
         status: string;
         studentId: number;
-        date: Date;
         amount: number;
         method: string;
         reference: string | null;
+        date: Date;
         dueDate: Date | null;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
-    findAll(): Prisma.PrismaPromise<({
+    }>;
+    findAll(): Promise<{
+        id: number;
+        learnerName: string;
+        amountPaid: number;
+        method: string;
+        statusKey: string;
+        receipt: string | null;
+        date: string;
+    }[]>;
+    findOne(id: string): Promise<({
         student: {
             id: number;
             userId: number | null;
@@ -26,49 +35,30 @@ export declare class PaymentsController {
         id: number;
         status: string;
         studentId: number;
-        date: Date;
         amount: number;
         method: string;
         reference: string | null;
+        date: Date;
         dueDate: Date | null;
-    })[]>;
-    findOne(id: string): Prisma.Prisma__PaymentClient<({
-        student: {
-            id: number;
-            userId: number | null;
-            fullName: string;
-            phone: string | null;
-            enrollmentDate: Date;
-            status: string;
-        };
-    } & {
+    }) | null>;
+    update(id: string, data: Prisma.PaymentUpdateInput): Promise<{
         id: number;
         status: string;
         studentId: number;
-        date: Date;
         amount: number;
         method: string;
         reference: string | null;
+        date: Date;
         dueDate: Date | null;
-    }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
-    update(id: string, data: Prisma.PaymentUpdateInput): Prisma.Prisma__PaymentClient<{
+    }>;
+    remove(id: string): Promise<{
         id: number;
         status: string;
         studentId: number;
-        date: Date;
         amount: number;
         method: string;
         reference: string | null;
-        dueDate: Date | null;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
-    remove(id: string): Prisma.Prisma__PaymentClient<{
-        id: number;
-        status: string;
-        studentId: number;
         date: Date;
-        amount: number;
-        method: string;
-        reference: string | null;
         dueDate: Date | null;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, Prisma.PrismaClientOptions>;
+    }>;
 }

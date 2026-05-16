@@ -17,17 +17,42 @@ let PaymentsService = class PaymentsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    create(data) {
-        return this.prisma.payment.create({ data });
+    async create(data) {
+        let student = await this.prisma.student.findFirst({
+            where: { fullName: data.learnerName }
+        });
+        if (!student) {
+            student = await this.prisma.student.create({
+                data: { fullName: data.learnerName || "Inconnu" }
+            });
+        }
+        return this.prisma.payment.create({
+            data: {
+                amount: Number(data.amountPaid) || 0,
+                method: data.method || "CASH",
+                status: data.statusKey || "received",
+                reference: data.receipt,
+                studentId: student.id,
+            }
+        });
     }
-    findAll() {
-        return this.prisma.payment.findMany({
+    async findAll() {
+        const payments = await this.prisma.payment.findMany({
             include: {
                 student: true,
             },
         });
+        return payments.map(p => ({
+            id: p.id,
+            learnerName: p.student.fullName,
+            amountPaid: p.amount,
+            method: p.method,
+            statusKey: p.status,
+            receipt: p.reference,
+            date: p.date.toISOString().split('T')[0]
+        }));
     }
-    findOne(id) {
+    async findOne(id) {
         return this.prisma.payment.findUnique({
             where: { id },
             include: {
@@ -35,13 +60,18 @@ let PaymentsService = class PaymentsService {
             },
         });
     }
-    update(id, data) {
+    async update(id, data) {
         return this.prisma.payment.update({
             where: { id },
-            data,
+            data: {
+                amount: Number(data.amountPaid),
+                method: data.method,
+                status: data.statusKey,
+                reference: data.receipt,
+            },
         });
     }
-    remove(id) {
+    async remove(id) {
         return this.prisma.payment.delete({
             where: { id },
         });

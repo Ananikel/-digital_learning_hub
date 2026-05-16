@@ -17,35 +17,79 @@ let CoursesService = class CoursesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    create(data) {
-        return this.prisma.course.create({ data });
+    async create(data) {
+        let cohort = await this.prisma.cohort.findFirst({
+            where: { name: data.cohortNameKey }
+        });
+        if (!cohort) {
+            const subject = await this.prisma.subject.findFirst({
+                where: { code: (data.subjectKey || "GERMAN").toUpperCase() }
+            });
+            cohort = await this.prisma.cohort.findFirst({
+                where: { subjectId: subject?.id }
+            }) || await this.prisma.cohort.findFirst();
+        }
+        let teacher = await this.prisma.teacher.findFirst({
+            where: { fullName: data.teacher }
+        }) || await this.prisma.teacher.findFirst();
+        if (!cohort || !teacher) {
+            throw new Error("Cohort or Teacher not found for course creation");
+        }
+        return this.prisma.course.create({
+            data: {
+                title: data.title || "Nouveau cours",
+                cohortId: cohort.id,
+                teacherId: teacher.id,
+                week: Number(data.week) || 1,
+                session: Number(data.session) || 1,
+                type: data.typeKey || "workshop",
+                objective: data.objective,
+                status: "draft"
+            }
+        });
     }
-    findAll() {
-        return this.prisma.course.findMany({
+    async findAll() {
+        const courses = await this.prisma.course.findMany({
             include: {
-                cohort: true,
+                cohort: { include: { subject: true } },
                 teacher: true,
             },
         });
+        return courses.map(c => ({
+            id: c.id,
+            title: c.title,
+            cohortNameKey: c.cohort.name,
+            subjectKey: c.cohort.subject.code.toLowerCase(),
+            teacher: c.teacher.fullName,
+            week: c.week,
+            session: c.session,
+            typeKey: c.type,
+            objective: c.objective,
+            progress: 0
+        }));
     }
-    findOne(id) {
+    async findOne(id) {
         return this.prisma.course.findUnique({
             where: { id },
             include: {
                 cohort: true,
                 teacher: true,
-                attendance: true,
-                assessments: true,
             },
         });
     }
-    update(id, data) {
+    async update(id, data) {
         return this.prisma.course.update({
             where: { id },
-            data,
+            data: {
+                title: data.title,
+                week: Number(data.week),
+                session: Number(data.session),
+                type: data.typeKey,
+                objective: data.objective,
+            },
         });
     }
-    remove(id) {
+    async remove(id) {
         return this.prisma.course.delete({
             where: { id },
         });

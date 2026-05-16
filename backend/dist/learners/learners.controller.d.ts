@@ -11,54 +11,26 @@ export declare class LearnersController {
         enrollmentDate: Date;
         status: string;
     }>;
-    findAll(): Promise<({
-        user: {
-            id: number;
-            email: string;
-            passwordHash: string;
-            roleId: number;
-            createdAt: Date;
-            updatedAt: Date;
-        } | null;
-        enrollments: {
-            id: number;
-            enrollmentDate: Date;
-            status: string;
-            studentId: number;
-            cohortId: number;
-        }[];
-    } & {
+    findAll(): Promise<{
+        id: number;
+        name: string;
+        phone: string | null;
+        statusKey: string;
+        subjectKey: string;
+        level: string;
+        progress: number;
+        attendance: number;
+        paid: number;
+        balance: number;
+    }[]>;
+    findOne(id: string): Promise<{
         id: number;
         userId: number | null;
         fullName: string;
         phone: string | null;
         enrollmentDate: Date;
         status: string;
-    })[]>;
-    findOne(id: string): Promise<({
-        user: {
-            id: number;
-            email: string;
-            passwordHash: string;
-            roleId: number;
-            createdAt: Date;
-            updatedAt: Date;
-        } | null;
-        enrollments: {
-            id: number;
-            enrollmentDate: Date;
-            status: string;
-            studentId: number;
-            cohortId: number;
-        }[];
-    } & {
-        id: number;
-        userId: number | null;
-        fullName: string;
-        phone: string | null;
-        enrollmentDate: Date;
-        status: string;
-    }) | null>;
+    } | null>;
     update(id: string, data: Prisma.StudentUpdateInput): Promise<{
         id: number;
         userId: number | null;

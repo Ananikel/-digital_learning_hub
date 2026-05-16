@@ -8,13 +8,15 @@ async function bootstrap() {
     const logger = new common_1.Logger('Bootstrap');
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
-        origin: '*',
+        origin: [
+            'http://localhost:5173',
+            'http://127.0.0.1:5173',
+            'https://digitallearning-hub.kelensitech.cloud'
+        ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
         transform: true,
     }));
     const httpAdapterHost = app.get(core_1.HttpAdapterHost);
